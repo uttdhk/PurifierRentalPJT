@@ -429,7 +429,7 @@ buildspec.yml 파일 수정
 ```
 - 배정 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
 ```
-# (ManagementCenter) PolicyHandler.java
+# (Assignment) PolicyHandler.java
 
 @Service
 public class PolicyHandler{
@@ -440,16 +440,16 @@ public class PolicyHandler{
     public void wheneverJoinOrdered_OrderRequest(@Payload JoinOrdered joinOrdered){
 
         if(joinOrdered.isMe()){
-            ManagementCenter oa = new ManagementCenter();
+            Assignment assignment = new Assignment();
 
-            oa.setOrderId(joinOrdered.getId());
-            oa.setInstallationAddress(joinOrdered.getInstallationAddress());
-            oa.setId(joinOrdered.getId());
-            oa.setStatus("JOINORDED");
-            oa.setEngineerName("Engineer" + joinOrdered.getId());
-            oa.setEngineerId(joinOrdered.getId() + 100);
+            assignment.setId(joinOrdered.getId());
+            assignment.setInstallationAddress(joinOrdered.getInstallationAddress());
+            assignment.setStatus("orderRequest");
+            assignment.setEngineerName("Enginner" + joinOrdered.getId());
+            assignment.setEngineerId(joinOrdered.getId());
+            assignment.setOrderId(joinOrdered.getId());
 
-            managementCenterRepository.save(oa);
+            assignmentRepository.save(assignment);
         }
     }
 }
