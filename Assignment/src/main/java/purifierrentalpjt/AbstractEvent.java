@@ -7,12 +7,18 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeTypeUtils;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Getter
+@Setter
 public class AbstractEvent {
 
     String eventType;
@@ -66,23 +72,6 @@ public class AbstractEvent {
                 AbstractEvent.this.publish();
             }
         });
-    }
-
-
-    public String getEventType() {
-        return eventType;
-    }
-
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
     }
 
     public boolean validate(){
