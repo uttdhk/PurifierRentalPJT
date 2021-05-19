@@ -182,15 +182,15 @@
 
 Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더이상 불필요해져도 Deployment 에서 제거되면 기존 마이크로 서비스에 어떤 영향도 주지 않는다.
 
-* [비교] 설치 (installation) 마이크로서비스의 경우 API 변화나 Retire 시에 서비스 관리센터(ManagementCenter) 마이크로 서비스의 변경을 초래한다.
+* [비교] 설치 (installation) 마이크로서비스의 경우 API 변화나 Retire 시에 배정(Assignment) 마이크로 서비스의 변경을 초래한다.
 
 예) API 변화시
 ```
-# ManagementCenter.java (Entity)
+# Assignment.java (Entity)
 
     @PostUpdate
     public void onPostUpdate() {
-            ipTVShopProject.external.Installation installation = new ipTVShopProject.external.Installation();
+            purifierRentalPJT.external.Installation installation = new purifierRentalPJT.external.Installation();
 
             installation.setOrderId(this.getOrderId());
             ManagementCenterApplication.applicationContext.getBean(ipTVShopProject.external.InstallationService.class)
