@@ -1,0 +1,70 @@
+- IAM > 사용자 > 보안자격증명 > 액세스 키 만들기
+- region : us-east-2
+
+aws eks --region us-east-2 update-kubeconfig --name awsteamd-cluster
+
+kubectl -n kafka exec -ti my-kafka-1 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic ipTVShopProject
+
+kubectl exec -it httpie bin/bash
+
+[ HPA 오토스케일링 ]
+kubectl autoscale deploy order --min=1 --max=10 --cpu-percent=1
+kubectl get deploy order -w
+kubectl get hpa -w
+kubectl delete hpa order 
+
+[ MSA 테스트 ]
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders productId="1001" productName="internet" installationAddress="Seoul" customerId="1" orderDate="20200715" status="JOINORDED"
+
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders productId="1002" productName="TV" installationAddress="Busan" customerId="2" orderDate="20200715" status="JOINORDED"
+
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orderStatuses/
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orderStatuses/orderID?id=1
+
+http PATCH http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/installations?orderId=1
+
+http PATCH http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders/cancel?orderId=1
+
+[ siege 부하 발생 ]
+siege -c2 -t10S -v --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+
+siege -c30 -t150S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+
+[ 무정지 재배포 ]
+---------------
+                    ports:
+                      - containerPort: 8080
+                    readinessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 10
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 10
+                    livenessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 120
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 5
+
+
+[ Kafka ]
+- 토픽 생성
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --topic ipTVShopProject --create --partitions 1 --replication-factor 1
+- 토픽 조회
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --list
+- 토픽 삭제
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --delete --zookeeper my-kafka-zookeeper:2181 --topic ipTVShopProject
+- 이벤트 발행
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-producer --broker-list my-kafka:9092 --topic ipTVShopProject
+- 이벤트 수신
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic ipTVShopProject --from-beginning
+kubectl -n kafka exec -ti my-kafka-1 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic ipTVShopProject
+
+[ mysql ]
+iptv.cgzkudckye4b.us-east-2.rds.amazonaws.com
+

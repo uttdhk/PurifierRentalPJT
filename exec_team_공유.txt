@@ -1,0 +1,194 @@
+[ 액세스 키 ID /  비밀 액세스 키 생성 ]
+- IAM > 사용자 > 보안자격증명 > 액세스 키 만들기
+- 액세스 키 ID,  비밀 액세스 키 복사
+
+[ aws 접속 설정 ]
+aws configure
+- access key id : 
+- 비밀 액세스 키 : 
+- region : 
+- Default output format : json
+
+cf)  리전 변경
+~/.aws nano config 파일 region 변경
+
+[ k8s cluster 생성 ]
+eksctl create cluster --name awsteamd-cluster --version 1.15 --nodegroup-name standard-workers --node-type t3.medium --nodes 3 --nodes-min 3 --nodes-max 5
+- cluster EC2 size : t2.micro   t3.medium
+
+cf) 클러스터 삭제
+eksctl delete cluster --name awsteamd-cluster
+
+A nodegroup can be scaled by using the eksctl scale nodegroup command:
+
+eksctl scale nodegroup --cluster=<clusterName> --nodes=<desiredCount> --name=<nodegroupName> [ --nodes-min=<minSize> ] [ --nodes-max=<maxSize> ]
+For example, to scale nodegroup ng-a345f4e1 in cluster-1 to 5 nodes, run:
+eksctl scale nodegroup --cluster=awsteamd-cluster --nodes=3 standard-workers
+
+[ k8s 클러스터 바라보도록 (AWS 클러스터 토큰 가져오기) ]
+aws eks --region us-east-2 update-kubeconfig --name awsteamd-cluster
+--> ~/.kube/config 파일에 current-context 가 변경됨
+--> 클러스터 (생성) 확인
+- kubectl config current-context
+- kubectl get all : service/kubernetes    표시되면 정상 <- get all 시 node는 표시되지 않음
+- kubectl get node : "4. 클러스터 생성"에서 설정한 node 갯수 만큼 조회되면 정상
+- EC2 > Auto Scaling 그룹 : 생성되어 있음 -> 최소/최대 수치 조정 가능
+
+[ EKS 연결 ]
+- sa 생성
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-admin
+  namespace: kube-system
+EOF
+
+- 롤 바인딩
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: eks-admin
+  namespace: kube-system
+EOF
+
+- 만들어진 eks-admin SA 의 토큰 가져오기
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
+
+[ MSA 배포 정보 ]
+- KUBE_URL : 
+- KUBE_TOKEN : 
+
+
+[ Kafka ]
+kubectl get all : service/kubernetes   하나만 나오는 상태에서 kafka 설치
+- zookeeper, kafka 설치 : helm version -> 설치가 안되어 있거나, 버전이 2.xx  일때
+curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+kubectl --namespace kube-system create sa tiller      # helm 의 설치관리자를 위한 시스템 사용자 생성
+kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+
+helm init --service-account tiller
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+helm repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+helm repo update
+helm install --name my-kafka --namespace kafka incubator/kafka
+--> 생성 확인 : zookeeper 3, kafka 3 개 pod 생성 확인
+kubectl get pod -n kafka 
+
+삭제
+helm del --purge my-kafka
+
+- 토픽 생성
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --topic ipTVShopProject --create --partitions 1 --replication-factor 1
+- 토픽 조회
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --zookeeper my-kafka-zookeeper:2181 --list
+- 토픽 삭제
+kubectl -n kafka exec my-kafka-0 -- /usr/bin/kafka-topics --delete --zookeeper my-kafka-zookeeper:2181 --topic ipTVShopProject
+- 이벤트 발행
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-producer --broker-list my-kafka:9092 --topic ipTVShopProject
+- 이벤트 수신
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic ipTVShopProject --from-beginning
+kubectl -n kafka exec -ti my-kafka-1 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic ipTVShopProject
+
+[ configMap 생성 ]
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iptv
+data:
+  urlstatus: 
+EOF
+
+[ Secret 생성 ]
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: iptv
+type: Opaque
+data:
+  username: cm9vdA==
+  password: bXlzcWwxMjM0IQ==
+EOF
+
+echo -n "root" | base64
+
+
+[ httpie, siege 설치 ]
+- httpie 설치
+cat <<EOF | kubectl apply -f -
+apiVersion: "v1"
+kind: "Pod"
+metadata: 
+  name: httpie
+  labels: 
+    name: httpie
+spec: 
+  containers: 
+    - name: httpie
+      image: clue/httpie
+      command:
+        - sleep
+        - "360000"
+EOF
+
+- kubectl exec -it httpie bin/bash
+
+- seige 설치
+apt-get update -y
+apt-get install -y siege
+
+[ HPA 오토스케일링 ]
+kubectl autoscale deploy order --min=1 --max=10 --cpu-percent=1
+kubectl delete hpa order 
+//kubectl scale deploy order --replicas=2
+kubectl get deploy order -w
+kubectl get hpa -w
+
+[ siege 부하 발생 ]
+kubectl exec -it httpie bin/bash
+
+siege -c2 -t10S -v --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+
+siege -c30 -t150S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+
+[ MSA 배포 후 점검 ]
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders productId="1001" productName="internet" installationAddress="Seoul" customerId="1" orderDate="20200715" status="JOINORDED"
+
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders productId="1002" productName="TV" installationAddress="Busan" customerId="2" orderDate="20200715" status="JOINORDED"
+
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orderStatuses/
+http http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orderStatuses/orderID?id=1
+
+http PATCH http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/installations?orderId=1
+
+http PATCH http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders/cancel?orderId=1
+
+---------------
+                    ports:
+                      - containerPort: 8080
+                    readinessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 10
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 10
+                    livenessProbe:
+                      httpGet:
+                        path: /actuator/health
+                        port: 8080
+                      initialDelaySeconds: 120
+                      timeoutSeconds: 2
+                      periodSeconds: 5
+                      failureThreshold: 5

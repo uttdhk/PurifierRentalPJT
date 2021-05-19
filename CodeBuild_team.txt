@@ -1,0 +1,65 @@
+﻿buildspec.yml 수정
+
+1. ECR Repository 생성 : 이미지 이름과 동일하게
+
+2. cache 적용
+  - S3 버킷 생성
+  - CodeBuild 캐시 설정 : CodeBuild > 프로젝트 빌드 > 빌드 선택 > 빌드 세부정보 > 아티펙트:편집 > 추가 구성 > 캐시유형/버킷 선택
+
+3. EKS 클러스터 생성 (이미 생성 되었으면 생략 가능)
+eksctl create cluster --name awsteamd-cluster --version 1.15 --nodegroup-name standard-workers --node-type t3.medium --nodes 3 --nodes-min 3 --nodes-max 5
+
+4. EKS 연결
+- sa 생성
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-admin
+  namespace: kube-system
+EOF
+
+- 롤 바인딩
+cat <<EOF | kubectl apply -f -
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: eks-admin
+  namespace: kube-system
+EOF
+
+- 만들어진 eks-admin SA 의 토큰 가져오기
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
+-> 환경변수 KUBE_TOKEN
+
+5. CodeBuild 프로젝트 생성(p.174~175) 및 환경 변수 추가(p.179)
+  - AWS_ACCOUNT_ID : 052937454741
+  - KUBE_URL : k8s URL 예-4조)  https://75049CA31C720FD3304A0347550C7209.sk1.us-east-2.eks.amazonaws.com
+  - KUBE_TOKEN : 
+eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJla3MtYWRtaW4tdG9rZW4tbW40NGYiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZWtzLWFkbWluIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiYWMxZWE2ZDctYzRjOC00NmYxLWE0ZmQtZTk5YzcxNjEzZmQ2Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50Omt1YmUtc3lzdGVtOmVrcy1hZG1pbiJ9.Uz9MGF8hnF_rodS7ikmDyELVqxeVAshBEw8Nk8VPo3kIGw_FzaEpFChpxDi19nBK-HfAfSK_s1M-8xXUI7O1lerpgvQzpaX8KneohIf3BIm4iYoHi2tuL7L3zVJcu5bRhMg5GL9sYeu22roZxkrHd-bJEc0ZtTkuwuqS2Sps_Y7XOEPIiZBxPkykKTRgSICKbULVdwx4sdP_k1u_sSRHBT6D3nwFaL7V39SimsHGn2T3OVNjxmUL4JeKW5HpYUIvUEuCT8t7M5pO9oXeX5wg2ixzOty_xErZVMXGyLodkH2uYEc2s0ro_jeqsEVSYJR_JUNHfqqOIOhQhEJhlHOZiQ
+
+6. CodeBuild와 ECR 연결(p.177)
+{
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:CompleteLayerUpload",
+        "ecr:GetAuthorizationToken",
+        "ecr:InitiateLayerUpload",
+        "ecr:PutImage",
+        "ecr:UploadLayerPart"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+}
+
+7. Docker Build/Push
+- buildspec.yml 수정 & CodeBuild 빌드
+- ECR에 이미지 정상 생성 확인
+- EKS 연결 service, deployment 생성
