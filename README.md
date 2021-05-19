@@ -168,7 +168,7 @@
 
 
 ## 헥사고날 아키텍처 다이어그램 도출
-![image](https://user-images.githubusercontent.com/56263370/87491731-e0a2c300-c683-11ea-9c78-ac7beda99da4.png)
+![hexagonal1](https://user-images.githubusercontent.com/81946287/118767974-67828680-b8b9-11eb-9b1c-1af80a17a4ee.png)
 
 
 ## 신규 서비스 추가 시 기존 서비스에 영향이 없도록 열린 아키택처 설계
@@ -176,7 +176,7 @@
 - 신규 개발 조직 추가 시, 기존의 마이크로 서비스에 수정이 발생하지 않도록 Inbund 요청을 REST 가 아닌 Event를 Subscribe 하는 방식으로 구현하였다.
 - 기존 마이크로 서비스에 대하여 아키텍처, 데이터베이스 구조와 관계 없이 추가할 수 있다.
 
-![image](https://user-images.githubusercontent.com/56263370/87504063-b7dcf680-c6a0-11ea-880f-629bbabecf57.png)
+![hexagonal2](https://user-images.githubusercontent.com/81946287/118768031-779a6600-b8b9-11eb-93bf-902c4a80ef34.png)
 
 ### 운영과 Retirement
 
