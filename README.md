@@ -147,8 +147,15 @@
 ### 완성된 1차 모형
 ![firstDesign](https://user-images.githubusercontent.com/81946287/118764341-4d927500-b8b4-11eb-8345-71254fe30f70.png)
 
+### 수정된 2차 모형
+![2ndDesign](https://user-images.githubusercontent.com/81946287/118765229-bc240280-b8b5-11eb-8bf4-2015470e7987.png)
 
-### 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
+    - 시나리오 내용을 매끄럽게 반영하기 위해 '서비스관리센터'를 '배정' 으로 변경
+    - 가입신청과 동시에 자동 배정되는 요구사항에 따라 Manager 액터가 불필요하여 제거
+    - 고객이 실시간 상태 확인을 위한 View 모델 배치
+
+
+### 2차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 #### 시나리오 Coverage Check (1)
 ![image](https://user-images.githubusercontent.com/56263370/87491137-4a21d200-c682-11ea-9e3e-66540f9c0af8.png)
 
