@@ -114,54 +114,39 @@
 ![as_is](https://user-images.githubusercontent.com/81946287/118763701-4323ab80-b8b3-11eb-9a23-15da2ea74528.png)
 
 ## TO-BE 조직 (Vertically-Aligned)
-![image](https://user-images.githubusercontent.com/56263370/87296805-4d15a900-c542-11ea-8fc2-15640ee62906.png)
+![to_be](https://user-images.githubusercontent.com/81946287/118763808-6f3f2c80-b8b3-11eb-807c-75ddb2daaddd.png)
 
 
 ## Event Storming 결과
 * MSAEz 로 모델링한 이벤트스토밍 결과:  
-  - http://msaez.io/#/storming/tumGnckjgrc4UVXq2EBT4EFYhnT2/mine/c03f2bb6625a2ed5bef6fcf78dde4b26/-MC01LpwJ3zz9a4MgvCj
+  - http://www.msaez.io/#/storming/IkrhsmX1DtOtbLQM9ri9QJ9uoRm2/every/ee3188d76ffc9344628b8a9183bcc9b1
 
 ### 이벤트 도출
-![image](https://user-images.githubusercontent.com/56263370/87490118-ce268a80-c67f-11ea-9e0f-28725998ecf4.png)
+![Event](https://user-images.githubusercontent.com/81946287/118763908-9d247100-b8b3-11eb-992f-f930e774b284.png)
 
 
-### 부적격 이벤트 탈락
-![image](https://user-images.githubusercontent.com/56263370/87490154-edbdb300-c67f-11ea-9923-d08c29203bc7.png)
-
-    - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
-        - 중복/불필요, 처리 프로세스에 해당하는 이벤트 제거
-
-### 폴리시 부착
-![image](https://user-images.githubusercontent.com/56263370/87490165-f8784800-c67f-11ea-919b-edee122caf1f.png)
-
-
-### 액터, 커맨드 부착하여 읽기 좋게
-![image](https://user-images.githubusercontent.com/56263370/87490182-04fca080-c680-11ea-87e3-829b12b1df15.png)
-
-
-### 어그리게잇으로 묶기
-![image](https://user-images.githubusercontent.com/56263370/87490218-19409d80-c680-11ea-83de-464d8c9e1d47.png)
+### 폴리시,어그리게잇 부착
+![Policy](https://user-images.githubusercontent.com/81946287/118763987-bb8a6c80-b8b3-11eb-9fe4-81c8f0380262.png)
 
     -가입신청, 서비스관리센터, 설치 부분을 정의함
 
-### 바운디드 컨텍스트로 묶기
-![image](https://user-images.githubusercontent.com/56263370/87490225-2198d880-c680-11ea-9aaa-1210b8455719.png)
+### 액터, 커맨드 부착
+![Command](https://user-images.githubusercontent.com/81946287/118764046-d1982d00-b8b3-11eb-9f90-87bf95f1660e.png)
 
+
+### 바운디드 컨텍스트로 묶기
+![BoundedContext](https://user-images.githubusercontent.com/81946287/118764169-099f7000-b8b4-11eb-9b65-acc48be3d56c.png)
 
     - 도메인 서열 분리 : 가입신청 -> 서비스관리센터 -> 설치 순으로 정의
        
 
-
-### 폴리시의 이동과 컨텍스트 매핑 (파란색점선은 Pub/Sub, 빨간색실선은 Req/Resp)
-![image](https://user-images.githubusercontent.com/56263370/87490238-2e1d3100-c680-11ea-8d63-9b9626cf0fd4.png)
+### View모델 추가 및 폴리시의 이동과 컨텍스트 매핑 (파란색점선은 Pub/Sub, 빨간색실선은 Req/Resp)
+![AddView](https://user-images.githubusercontent.com/81946287/118764287-38b5e180-b8b4-11eb-997c-92032adf193d.png)
 
 
 ### 완성된 1차 모형
-![image](https://user-images.githubusercontent.com/56263370/87490104-bfd86e80-c67f-11ea-95d9-8d6d41dd1eea.png)
+![firstDesign](https://user-images.githubusercontent.com/81946287/118764341-4d927500-b8b4-11eb-8345-71254fe30f70.png)
 
-
-    - View Model 추가
-![image](https://user-images.githubusercontent.com/56263370/87490657-2ca03880-c681-11ea-9a88-0161e94cdf71.png)	
 
 ### 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 #### 시나리오 Coverage Check (1)
