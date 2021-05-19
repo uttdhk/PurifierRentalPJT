@@ -228,42 +228,46 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 	cd Order
 	mvn spring-boot:run
 
-	cd ManagementCenter
+	cd Assignment
 	mvn spring-boot:run
 
 	cd Installation
 	mvn spring-boot:run
 
-	cd orderstatus
-	mvn spring-boot:run
 
 - EKS : CI/CD 통해 빌드/배포 ("운영 > CI-CD 설정" 부분 참조)
 ```
 
 ## DDD 의 적용
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: Order, ManagementCenter, Installation
-- Installation(설치) 마이크로서비스 예시
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: Order, Assignment, Installation
+- Assignment(배정) 마이크로서비스 예시
 
 ```
-	package ipTVShopProject;
+	package purifierrentalpjt;
 
 	import javax.persistence.*;
 	import org.springframework.beans.BeanUtils;
+	
+	import lombok.Getter;
+	import lombok.Setter;
+	
 	import java.util.List;
+	import java.util.Date;
 
 	@Entity
-	@Table(name="Installation_table")
-	public class Installation {
+	@Getter
+	@Setter
+	@Table(name="Assignment_table")
+	public class Assignment {
 
 		@Id
 		@GeneratedValue(strategy=GenerationType.AUTO)
 		private Long id;
+		private Long orderId;
+		private String installationAddress;
 		private Long engineerId;
 		private String engineerName;
-		private String installReservationDate;
-		private String installCompleteDate;
-		private Long orderId;
 		private String status;
 
 		public Long getId() {
@@ -273,34 +277,7 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 		public void setId(Long id) {
 			this.id = id;
 		}
-		public Long getEngineerId() {
-			return engineerId;
-		}
-
-		public void setEngineerId(Long engineerId) {
-			this.engineerId = engineerId;
-		}
-		public String getEngineerName() {
-			return engineerName;
-		}
-
-		public void setEngineerName(String engineerName) {
-			this.engineerName = engineerName;
-		}
-		public String getInstallReservationDate() {
-			return installReservationDate;
-		}
-
-		public void setInstallReservationDate(String installReservationDate) {
-			this.installReservationDate = installReservationDate;
-		}
-		public String getInstallCompleteDate() {
-			return installCompleteDate;
-		}
-
-		public void setInstallCompleteDate(String installCompleteDate) {
-			this.installCompleteDate = installCompleteDate;
-		}
+		
 		public Long getOrderId() {
 			return orderId;
 		}
@@ -308,6 +285,31 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 		public void setOrderId(Long orderId) {
 			this.orderId = orderId;
 		}
+		
+		public String getInstallationAddress() {
+			return installationAddress;
+		}
+
+		public void setInstallationAddress(String installationAddress) {
+			this.installationAddress = installationAddress;
+		}
+		
+		public Long getEngineerId() {
+			return engineerId;
+		}
+
+		public void setEngineerId(Long engineerId) {
+			this.engineerId = engineerId;
+		}
+		
+		public String getEngineerName() {
+			return engineerName;
+		}
+
+		public void setEngineerName(String engineerName) {
+			this.engineerName = engineerName;
+		}
+		
 		public String getStatus() {
 			return status;
 		}
@@ -323,8 +325,7 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 
 
 ## 폴리글랏 퍼시스턴스
-- order, ManagementCenter, installation 서비스는 H2 적용
-- orderstatus 서비스는 My-SQL DB를 적용을 위해 다음 사항을 수정하여 적용(AWS RDS 적용)
+- order, Assignment, installation 서비스 모두 H2 적용
 
 pom.xml dependency 추가
 ```
@@ -366,15 +367,15 @@ buildspec.yml 파일 수정
 
 ## 동기식 호출 과 Fallback 처리
 
-- 분석 단계에서의 조건 중 하나로 서비스 관리센터(ManagementCenter)에서 인터넷 가입신청 취소를 요청 받으면, 
+- 분석 단계에서의 조건 중 하나로 배정(Assignment) 서비스에서 인터넷 가입신청 취소를 요청 받으면, 
 설치(installation) 서비스 취소 처리하는 부분을 동기식 호출하는 트랜잭션으로 처리하기로 하였다. 
 - 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어 있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 설치 서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
 ```
-# (ManagementCenter) InstallationService.java
+# (Assignment) InstallationService.java
 
-	package ipTVShopProject.external;
+	package purifierrentalpjt.external;
 
 
 	@FeignClient(name="Installation", url="http://Installation:8080")
@@ -386,11 +387,11 @@ buildspec.yml 파일 수정
 	}
 ```
 
-인터넷 가입 취소 요청(cancelRequest)을 받은 후, 처리하는 부분
+정수기 렌탈 서비스 가입 취소 요청(cancelRequest)을 받은 후, 처리하는 부분
 ```
 # (Installation) InstallationController.java
 
-	package ipTVShopProject;
+	package purifierrentalpjt;
 
 	@RestController
 	public class InstallationController {
@@ -410,7 +411,7 @@ buildspec.yml 파일 수정
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
-가입 신청(order)이 이루어진 후에 서비스 관리센터(ManagementCenter) 서비스로 이를 알려주는 행위는 비동기식으로 처리하여, 서비스 관리센터(ManagementCenter) 서비스의 처리를 위하여 가입신청(order)이 블로킹 되지 않도록 처리한다.
+가입 신청(order)이 이루어진 후에 배정(Assignment) 서비스로 이를 알려주는 행위는 비동기식으로 처리하여, 배정(Assignment) 서비스의 처리를 위하여 가입신청(order)이 블로킹 되지 않도록 처리한다.
  
 - 이를 위하여 가입 신청에 기록을 남긴 후에 곧바로 가입 신청이 되었다는 도메인 이벤트를 카프카로 송출한다.(Publish)
 ```
@@ -426,7 +427,7 @@ buildspec.yml 파일 수정
         }
     }
 ```
-- 서비스 관리센터 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
+- 배정 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
 ```
 # (ManagementCenter) PolicyHandler.java
 
@@ -453,15 +454,14 @@ public class PolicyHandler{
     }
 }
 ```
-가입신청은 서비스 관리센터와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 서비스 관리센터 서비스가 유지보수로 인해 잠시 내려간 상태라도 가입신청을 받는데 문제가 없다.
+가입신청은 배정 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 배정 서비스가 유지보수로 인해 잠시 내려간 상태라도 가입신청을 받는데 문제가 없다.
 
 
 ## CQRS
 
 가입신청 상태 조회를 위한 서비스를 CQRS 패턴으로 구현하였다.
-- order, ManagementCenter, Installation 개별 aggregate 통합 조회로 인한 성능 저하를 막을 수 있다.
+- Order, Assignment, Installation 개별 aggregate 통합 조회로 인한 성능 저하를 막을 수 있다.
 - 모든 정보는 비동기 방식으로 발행된 이벤트를 수신하여 처리된다.
-- 별도의 서비스(orderStatus), 저장소(AWS RDS-mySQL)로 구현하였다.
 - 설계 : MSAEz 설계의 view 매핑 설정 참조
 
 
