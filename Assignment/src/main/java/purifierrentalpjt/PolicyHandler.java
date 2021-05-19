@@ -1,6 +1,9 @@
 package purifierrentalpjt;
 
 import purifierrentalpjt.config.kafka.KafkaProcessor;
+
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +22,19 @@ public class PolicyHandler{
 
         System.out.println("\n\n##### listener OrderRequest : " + joinOrdered.toJson() + "\n\n");
 
-        // Sample Logic //
         Assignment assignment = new Assignment();
+
+        assignment.setId(joinOrdered.getId());
+        assignment.setInstallationAddress(joinOrdered.getInstallationAddress());
+        assignment.setStatus("orderRequest");
+        assignment.setEngineerName("Enginner" + joinOrdered.getId());
+        assignment.setEngineerId(joinOrdered.getId());
+        assignment.setOrderId(joinOrdered.getId());
+
         assignmentRepository.save(assignment);
             
     }
+
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverCancelOrdered_CancelRequest(@Payload CancelOrdered cancelOrdered){
 
@@ -31,27 +42,35 @@ public class PolicyHandler{
 
         System.out.println("\n\n##### listener CancelRequest : " + cancelOrdered.toJson() + "\n\n");
 
-        // Sample Logic //
-        Assignment assignment = new Assignment();
-        assignmentRepository.save(assignment);
+        try {
+            Optional<Assignment> assignment = assignmentRepository.findByOrderId(cancelOrdered.getId());
+            assignment.get().setStatus("cancelRequest");
+            assignmentRepository.save(assignment.get());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
             
     }
+
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverInstallationCompleted_InstallationCompleteNotify(@Payload InstallationCompleted installationCompleted){
 
         if(!installationCompleted.validate()) return;
 
         System.out.println("\n\n##### listener InstallationCompleteNotify : " + installationCompleted.toJson() + "\n\n");
-
-        // Sample Logic //
-        Assignment assignment = new Assignment();
-        assignmentRepository.save(assignment);
+        try {
+            assignmentRepository.findById(installationCompleted.getOrderId()).ifPresent(
+                assignment -> {
+                    assignment.setStatus("installationComplete");
+                    assignmentRepository.save(assignment);
+            });
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
             
     }
 
-
     @StreamListener(KafkaProcessor.INPUT)
     public void whatever(@Payload String eventString){}
-
 
 }

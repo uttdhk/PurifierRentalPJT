@@ -1,10 +1,8 @@
 package purifierrentalpjt;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
-import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
 
-@RepositoryRestResource(collectionResourceRel="assignments", path="assignments")
-public interface AssignmentRepository extends PagingAndSortingRepository<Assignment, Long>{
-
-
+public interface AssignmentRepository extends CrudRepository<Assignment, Long>{
+    Optional<Assignment> findByOrderId(Long orderId);
 }

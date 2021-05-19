@@ -26,29 +26,52 @@ public class Assignment {
 
     @PostPersist
     public void onPostPersist(){
-        EngineerAssigned engineerAssigned = new EngineerAssigned();
-        BeanUtils.copyProperties(this, engineerAssigned);
-        engineerAssigned.publishAfterCommit();
+        
+        System.out.println(this.getStatus() + "POST TEST");
+        
+        if(this.getStatus().equals("orderRequest")) {
 
+            EngineerAssigned engineerAssigned = new EngineerAssigned();
 
-        JoinCompleted joinCompleted = new JoinCompleted();
-        BeanUtils.copyProperties(this, joinCompleted);
-        joinCompleted.publishAfterCommit();
+            engineerAssigned.setId(this.getId()); 
+            engineerAssigned.setOrderId(this.getId()); 
+            engineerAssigned.setInstallationAddress(this.getInstallationAddress()); 
+            engineerAssigned.setEngineerId(this.getEngineerId()); 
+            engineerAssigned.setEngineerName(this.getEngineerName()); 
+            
+            BeanUtils.copyProperties(this, engineerAssigned);
+            engineerAssigned.publishAfterCommit();
 
+        } else if (this.getStatus().equals("installationComplete")) {
 
-        OrderCancelAccepted orderCancelAccepted = new OrderCancelAccepted();
-        BeanUtils.copyProperties(this, orderCancelAccepted);
-        orderCancelAccepted.publishAfterCommit();
+            JoinCompleted joinCompleted = new JoinCompleted();
 
-        //Following code causes dependency to external APIs
-        // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
+            joinCompleted.setId(this.getId()); 
+            joinCompleted.setOrderId(this.orderId); 
+            joinCompleted.setStatus(this.getStatus()); 
 
-        purifierrentalpjt.external.Installation installation = new purifierrentalpjt.external.Installation();
-        // mappings goes here
-        //Application 에러 발생 -> 잠시 주석처리
-        //Application.applicationContext.getBean(purifierrentalpjt.external.InstallationService.class)
-        //    .cancelInstallation(installation);
+            BeanUtils.copyProperties(this, joinCompleted);
+            joinCompleted.publishAfterCommit();
 
+        } else if (this.getStatus().equals("cancelRequest")) {
+
+            OrderCancelAccepted orderCancelAccepted = new OrderCancelAccepted();
+            
+            orderCancelAccepted.setId(this.getId()); 
+            orderCancelAccepted.setOrderId(this.getId()); 
+            orderCancelAccepted.setStatus("orderCancelAccept"); 
+
+            BeanUtils.copyProperties(this, orderCancelAccepted);
+            orderCancelAccepted.publishAfterCommit();
+
+            purifierrentalpjt.external.Installation installation = new purifierrentalpjt.external.Installation();
+
+            installation.setId(this.getId());
+
+            AssignmentApplication.applicationContext.getBean(purifierrentalpjt.external.InstallationService.class)
+            .cancelInstallation(installation);
+
+        }
 
     }
 
