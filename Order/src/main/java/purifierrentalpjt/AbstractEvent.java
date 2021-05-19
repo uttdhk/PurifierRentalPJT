@@ -1,28 +1,27 @@
 package purifierrentalpjt;
 
-import purifierrentalpjt.config.kafka.KafkaProcessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.MimeTypeUtils;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Getter
-@Setter
-public class AbstractEvent {
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.MimeTypeUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import purifierrentalpjt.config.kafka.KafkaProcessor;
+
+/**
+ * 이벤트 공통
+ * @author KYT
+ */
+public class AbstractEvent {
     String eventType;
-    String timestamp;
+	String timestamp;
 
     public AbstractEvent(){
         this.setEventType(this.getClass().getSimpleName());
@@ -43,6 +42,10 @@ public class AbstractEvent {
         return json;
     }
 
+    /**
+     * Kafka MQ에 전송(발행)한다
+     * @param json
+     */
     public void publish(String json){
         if( json != null ){
 
@@ -73,6 +76,15 @@ public class AbstractEvent {
             }
         });
     }
+    
+    public String getEventType() {
+		return eventType;
+	}
+
+	public void setEventType(String eventType) {
+		this.eventType = eventType;
+	}
+
 
     public boolean validate(){
         return getEventType().equals(getClass().getSimpleName());

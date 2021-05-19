@@ -6,12 +6,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-
+/**
+ * 주문 Aggreate
+ * @author KYT
+ */
 @SpringBootApplication
 @EnableBinding(KafkaProcessor.class)
 @EnableFeignClients
 public class OrderApplication {
-    protected static ApplicationContext applicationContext;
+    protected static ApplicationContext applicationContext;	
+    
     public static void main(String[] args) {
         applicationContext = SpringApplication.run(OrderApplication.class, args);
     }
