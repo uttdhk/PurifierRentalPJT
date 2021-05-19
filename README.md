@@ -157,13 +157,13 @@
 
 ### 2차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 #### 시나리오 Coverage Check (1)
-![image](https://user-images.githubusercontent.com/56263370/87491137-4a21d200-c682-11ea-9e3e-66540f9c0af8.png)
+![1stReview](https://user-images.githubusercontent.com/81946287/118766395-546eb700-b8b7-11eb-8330-a26f30c69072.png)
 
 #### 시나리오 Coverage Check (2)
-![image](https://user-images.githubusercontent.com/56263370/87491151-59088480-c682-11ea-86a6-53df001934d1.png)
+![2ndReview](https://user-images.githubusercontent.com/81946287/118766439-62243c80-b8b7-11eb-825d-9fcc9635607c.png)
 
 #### 비기능 요구사항 coverage
-![image](https://user-images.githubusercontent.com/56263370/87491175-66be0a00-c682-11ea-865f-9ee9e6113ed8.png)
+![3rdReview](https://user-images.githubusercontent.com/81946287/118766471-6cded180-b8b7-11eb-9c00-dcaec093281c.png)
 
 
 
