@@ -26,7 +26,7 @@ public class PolicyHandler{
 
         if(engineerAssigned.validate()){
             Installation installationAccept = new Installation();
-            installationAccept.setStatus("INSTALLATIONACCEPTED");
+            installationAccept.setStatus("installationAccepted"); 
             SimpleDateFormat defaultSimpleDateFormat = new SimpleDateFormat("YYYYMMddHHmmss");
             String today = defaultSimpleDateFormat.format(new Date());
             installationAccept.setInstallReservationDate(today);

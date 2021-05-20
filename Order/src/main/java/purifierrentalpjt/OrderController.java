@@ -33,11 +33,14 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "/order/joinOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public boolean joinOrder(
-		@RequestParam( value = "productId", required = false) 				Long 	productId, 
+		@RequestParam("productId") 				Long 	productId, 
 		@RequestParam("productName")  			String 	productName,
-		@RequestParam("installationAddress")  	String 	installationAddress,
-		@RequestParam("customerId")  			Long 	customerId,
-		@RequestParam("orderDate")  			String 	orderDate
+		@RequestParam( value="installationAddress", required = false)  	
+			String 	installationAddress,
+		@RequestParam("customerId")  			
+			Long 	customerId,
+		@RequestParam( value="orderDate", required = false)  			
+			String 	orderDate
 					) throws Exception {
 		
 		
@@ -54,7 +57,7 @@ public class OrderController {
 		
 		// 주소가 없으면, 기본주소
 		if( StringUtils.isEmpty(installationAddress)) {
-			installationAddress ="SKU타워";
+			installationAddress ="SKU-Tower";
 		}
 		
 		// 상품이 없으면, 기본상품
@@ -85,8 +88,7 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "/order/cancelOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public boolean cancelOrder(
-		@RequestParam("id") 				Long 	id 
-			) throws Exception {
+		@RequestParam("id") Long id ) throws Exception {
 		
 		// init
 		System.out.println("##### /order/cancelOrder  called #####");
@@ -97,9 +99,9 @@ public class OrderController {
 		if( orderOpt.isPresent()) {
 			Order order =orderOpt.get();
 			orderRepository.delete(order);
-		}
+			status = true;
+		} 
 		
-		status = true;
 		return status;
 	}
 	

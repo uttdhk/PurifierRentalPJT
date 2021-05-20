@@ -44,6 +44,8 @@ public class PolicyHandler{
 
         try {
             Optional<Assignment> assignment = assignmentRepository.findByOrderId(cancelOrdered.getId());
+          
+            // 배정정보는 실제 삭제를 하지않고, 삭제상태로만 변경한다 
             assignment.get().setStatus("cancelRequest");
             assignmentRepository.save(assignment.get());
         } catch(Exception e) {

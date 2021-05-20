@@ -62,9 +62,9 @@ public class Order {
      */
     @PreRemove
     public void onPreRemove() {
-	  CancelOrdered cancelOrdered = new CancelOrdered();
-      BeanUtils.copyProperties(this, cancelOrdered);
-      cancelOrdered.publishAfterCommit();
+    	CancelOrdered cancelOrdered = new CancelOrdered();
+    	BeanUtils.copyProperties(this, cancelOrdered);
+    	cancelOrdered.publishAfterCommit();
     }
 
     /**

@@ -3,6 +3,10 @@ package purifierrentalpjt;
 import javax.persistence.*;
 import org.springframework.beans.BeanUtils;
 
+/**
+ * 정수기 설치
+ * @author 
+ */
 @Entity
 @Table(name="Installation_table")
 public class Installation {
@@ -17,32 +21,30 @@ public class Installation {
     private Long orderId;
     private String status;
 
+    
     @PostPersist
     public void onPostPersist(){
         InstallationAccepted installationAccepted = new InstallationAccepted();
         BeanUtils.copyProperties(this, installationAccepted);
         installationAccepted.publishAfterCommit();
-
-
     }
 
+    
     @PostUpdate
     public void onPostUpdate(){
-
-        if(this.getStatus().equals("INSTALLCOMPLETED")) {
+    	System.out.println("### 카프카 메시지 발행 - " + this.getStatus());
+        if(this.getStatus().equals("installationComplete")) {
             InstallationCompleted installationCompleted = new InstallationCompleted();
             BeanUtils.copyProperties(this, installationCompleted);
             installationCompleted.publishAfterCommit();
         }
 
-        if(this.getStatus().equals("INSTALLATIONCANCELED")) {
+        if(this.getStatus().equals("installationCanceled")) {
             InstallationCanceled installationCanceled = new InstallationCanceled();
             BeanUtils.copyProperties(this, installationCanceled);
             installationCanceled.publishAfterCommit();
         }
-
     }
-
 
     public Long getId() {
         return id;
