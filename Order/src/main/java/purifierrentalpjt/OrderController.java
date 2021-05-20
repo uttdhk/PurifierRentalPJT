@@ -70,6 +70,7 @@ public class OrderController {
 		order.setInstallationAddress(installationAddress);
 		order.setCustomerId(customerId);
 		order.setOrderDate(orderDate);
+		order.setStatus("orderRequest");
 		orderRepository.save(order);
 		
 		status = true;
