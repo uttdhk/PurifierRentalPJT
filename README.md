@@ -336,44 +336,18 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 
 
 ## 폴리글랏 퍼시스턴스
-- order, Assignment, installation 서비스 모두 H2 적용
+- order, Assignment, installation 서비스 모두 H2 메모리DB를 적용하였다.  
+다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
-pom.xml dependency 추가
 ```
-	<dependency>
-		<groupId>mysql</groupId>
-		<artifactId>mysql-connector-java</artifactId>
-		<scope>runtime</scope>
-	</dependency>
-```
-
-application.yml 파일 수정
-```
-	datasource:
-		url: ${url}
-		username: ${username}
-		password: ${password}
-		driver-class-name: com.mysql.cj.jdbc.Driver
-```
-
-buildspec.yml 파일 수정
-```
-    env:
-      - name: url
-	valueFrom:
-	  configMapKeyRef:
-	    name: iptv
-	    key: urlstatus 
-      - name: username
-	valueFrom:
-	  secretKeyRef:
-	    name: iptv
-	    key: username          
-      - name: password
-	valueFrom:
-	  secretKeyRef:
-	    name: iptv
-	    key: password    
+--application.yml // mariaDB 추가 예시
+spring:
+  profiles: real-db
+  datasource:
+        url: jdbc:mariadb://rds주소:포트명(기본은 3306)/database명
+        username: db계정
+        password: db계정 비밀번호
+        driver-class-name: org.mariadb.jdbc.Driver
 ```
 
 ## 동기식 호출 과 Fallback 처리
