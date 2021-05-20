@@ -417,26 +417,22 @@ API Gateway를 통하여, 마이크로 서비스들의 진입점을 통일한다
 # application.yml 파일에 라우팅 경로 설정
 
 spring:
-  profiles: docker
+  profiles: default
   cloud:
     gateway:
       routes:
         - id: Order
-          uri: http://Order:8080
+          uri: http://localhost:8081
           predicates:
-            - Path=/orders/** 
-        - id: ManagementCenter
-          uri: http://ManagementCenter:8080
+            - Path=/orders/** /orderStatuses/**
+        - id: Assignment
+          uri: http://localhost:8082
           predicates:
-            - Path=/managementCenters/** 
+            - Path=/assignments/** 
         - id: Installation
-          uri: http://Installation:8080
+          uri: http://localhost:8083
           predicates:
             - Path=/installations/** 
-        - id: orderstatus
-          uri: http://orderstatus:8080
-          predicates:
-            - Path=/orderStatuses/** 
       globalcors:
         corsConfigurations:
           '[/**]':
