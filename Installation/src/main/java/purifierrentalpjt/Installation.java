@@ -2,8 +2,6 @@ package purifierrentalpjt;
 
 import javax.persistence.*;
 import org.springframework.beans.BeanUtils;
-import java.util.List;
-import java.util.Date;
 
 @Entity
 @Table(name="Installation_table")
@@ -30,15 +28,18 @@ public class Installation {
 
     @PostUpdate
     public void onPostUpdate(){
-        InstallationCompleted installationCompleted = new InstallationCompleted();
-        BeanUtils.copyProperties(this, installationCompleted);
-        installationCompleted.publishAfterCommit();
 
+        if(this.getStatus().equals("INSTALLCOMPLETED")) {
+            InstallationCompleted installationCompleted = new InstallationCompleted();
+            BeanUtils.copyProperties(this, installationCompleted);
+            installationCompleted.publishAfterCommit();
+        }
 
-        InstallationCanceled installationCanceled = new InstallationCanceled();
-        BeanUtils.copyProperties(this, installationCanceled);
-        installationCanceled.publishAfterCommit();
-
+        if(this.getStatus().equals("INSTALLATIONCANCELED")) {
+            InstallationCanceled installationCanceled = new InstallationCanceled();
+            BeanUtils.copyProperties(this, installationCanceled);
+            installationCanceled.publishAfterCommit();
+        }
 
     }
 
