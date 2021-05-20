@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: Assignment
-          image: username/Assignment:latest
+          image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-assignment:latest
           ports:
             - containerPort: 8080
           readinessProbe:
