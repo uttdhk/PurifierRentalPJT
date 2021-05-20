@@ -1,8 +1,8 @@
 # PurifierRentalPJT
-21년 1차수 4조
+21년 1차수 3조
 # PurifierRentalProject (정수기렌탈 서비스)
 
-4조 정수기 렌탈 신청 서비스 프로젝트 입니다.
+3조 정수기 렌탈 신청 서비스 프로젝트 입니다.
 
 # Table of contents
 
@@ -321,7 +321,16 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 	}
 ```
 
+적용 후 REST API의 테스트
+1) 정수기 렌탈 서비스 신청 & 설치완료 처리
+    (a) http -f POST localhost:8081/order/joinOrder productId=4 productName=PURI6 installationAddress="addr#6" customerId=506
+    (b) htt[ -f PATCH http://localhost:8083/installations orderId=5 
+![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
 
+2) 카프카 메시지 확인
+   (a) 서비스 신청 후 : JoinOrdered -> EngineerAssigned -> InstallationAccepted
+   (b) 설치완료 처리 후 : InstallationCompleted
+![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
 
 
 ## 폴리글랏 퍼시스턴스
