@@ -330,7 +330,7 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 2) 카프카 메시지 확인
    (a) 서비스 신청 후 : JoinOrdered -> EngineerAssigned -> InstallationAccepted
    (b) 설치완료 처리 후 : InstallationCompleted
-![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
+![image](https://user-images.githubusercontent.com/76420081/118930569-df67b400-b980-11eb-8ad2-66e33a3a5993.png)
 
 
 ## 폴리글랏 퍼시스턴스
