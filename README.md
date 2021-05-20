@@ -1,8 +1,8 @@
 # PurifierRentalPJT
-21년 1차수 4조
+21년 1차수 3조
 # PurifierRentalProject (정수기렌탈 서비스)
 
-4조 정수기 렌탈 신청 서비스 프로젝트 입니다.
+3조 정수기 렌탈 신청 서비스 프로젝트 입니다.
 
 # Table of contents
 
@@ -178,50 +178,10 @@
 
 ![hexagonal2](https://user-images.githubusercontent.com/81946287/118780023-97845680-b8c6-11eb-89d3-01fabd32fbfa.png)
 
-### 운영과 Retirement
 
-Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더이상 불필요해져도 Deployment 에서 제거되면 기존 마이크로 서비스에 어떤 영향도 주지 않는다.
-
-* [비교] 설치 (installation) 마이크로서비스의 경우 API 변화나 Retire 시에 배정(Assignment) 마이크로 서비스의 변경을 초래한다.
-
-예) API 변화시
-```
-# Assignment.java (Entity)
-
-    @PostUpdate
-    public void onPostUpdate() {
-            purifierRentalPJT.external.Installation installation = new purifierRentalPJT.external.Installation();
-
-            installation.setOrderId(this.getOrderId());
-            ManagementCenterApplication.applicationContext.getBean(ipTVShopProject.external.InstallationService.class)
-                    .installationCancellation(installation);
-
-	-------->
-	
-            ManagementCenterApplication.applicationContext.getBean(ipTVShopProject.external.InstallationService.class)
-                    .installationCancellation2222222(installation);
-    }	    
-```
-
-예) Retire 시
-```
-# ManagementCenter.java (Entity)
-
-    @PostUpdate
-    public void onPostUpdate(){
-    /**
-            ipTVShopProject.external.Installation installation = new ipTVShopProject.external.Installation();
-
-            installation.setOrderId(this.getOrderId());
-            ManagementCenterApplication.applicationContext.getBean(ipTVShopProject.external.InstallationService.class)
-                    .installationCancellation(installation);
-
-    **/
-    } 
-```
 
 # 구현:
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8083 이다)
 
 ```
 - Local
@@ -260,109 +220,70 @@ Request/Response 방식으로 구현하지 않았기 때문에 서비스가 더�
 	@Setter
 	@Table(name="Assignment_table")
 	public class Assignment {
-
+		
 		@Id
-		@GeneratedValue(strategy=GenerationType.AUTO)
-		private Long id;
-		private Long orderId;
-		private String installationAddress;
-		private Long engineerId;
-		private String engineerName;
-		private String status;
+    		@GeneratedValue(strategy=GenerationType.AUTO)
+    		private Long id;
+    		private Long orderId;
+    		private String installationAddress;
+    		private Long engineerId;
+    		private String engineerName;
+    		private String status;
 
-		public Long getId() {
-			return id;
-		}
+    		@PostPersist
+    		public void onPostPersist(){
+        
+        		System.out.println(this.getStatus() + "POST TEST");
+        
+        		if(this.getStatus().equals("orderRequest")) {
 
-		public void setId(Long id) {
-			this.id = id;
-		}
-		
-		public Long getOrderId() {
-			return orderId;
-		}
+            		  EngineerAssigned engineerAssigned = new EngineerAssigned();
 
-		public void setOrderId(Long orderId) {
-			this.orderId = orderId;
-		}
-		
-		public String getInstallationAddress() {
-			return installationAddress;
-		}
+            		  engineerAssigned.setId(this.getId()); 
+            		  engineerAssigned.setOrderId(this.getId()); 
+            		  engineerAssigned.setInstallationAddress(this.getInstallationAddress()); 
+            		  engineerAssigned.setEngineerId(this.getEngineerId()); 
+            		  engineerAssigned.setEngineerName(this.getEngineerName()); 
+            
+            		  BeanUtils.copyProperties(this, engineerAssigned);
+            		  engineerAssigned.publishAfterCommit();
 
-		public void setInstallationAddress(String installationAddress) {
-			this.installationAddress = installationAddress;
-		}
-		
-		public Long getEngineerId() {
-			return engineerId;
-		}
+        		} else if (this.getStatus().equals("installationComplete")) {
 
-		public void setEngineerId(Long engineerId) {
-			this.engineerId = engineerId;
-		}
-		
-		public String getEngineerName() {
-			return engineerName;
-		}
+            		  JoinCompleted joinCompleted = new JoinCompleted();
 
-		public void setEngineerName(String engineerName) {
-			this.engineerName = engineerName;
-		}
-		
-		public String getStatus() {
-			return status;
-		}
-
-		public void setStatus(String status) {
-			this.status = status;
-		}
-
-	}
+            		  joinCompleted.setId(this.getId()); 
+            		  joinCompleted.setOrderId(this.orderId); 
+            		  joinCompleted.setStatus(this.getStatus());
 ```
 
+적용 후 REST API의 테스트
+1) 정수기 렌탈 서비스 신청 & 설치완료 처리
 
+- (a) http -f POST localhost:8081/order/joinOrder productId=4 productName=PURI6 installationAddress="addr#6" customerId=506
+- (b) http -f PATCH http://localhost:8083/installations orderId=5 
+![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
+
+2) 카프카 메시지 확인
+
+- (a) 서비스 신청 후 : JoinOrdered -> EngineerAssigned -> InstallationAccepted
+- (b) 설치완료 처리 후 : InstallationCompleted
+![image](https://user-images.githubusercontent.com/76420081/118930569-df67b400-b980-11eb-8ad2-66e33a3a5993.png)
 
 
 ## 폴리글랏 퍼시스턴스
-- order, Assignment, installation 서비스 모두 H2 적용
+- order, Assignment, installation 서비스 모두 H2 메모리DB를 적용하였다.  
+다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
-pom.xml dependency 추가
 ```
-	<dependency>
-		<groupId>mysql</groupId>
-		<artifactId>mysql-connector-java</artifactId>
-		<scope>runtime</scope>
-	</dependency>
-```
-
-application.yml 파일 수정
-```
-	datasource:
-		url: ${url}
-		username: ${username}
-		password: ${password}
-		driver-class-name: com.mysql.cj.jdbc.Driver
-```
-
-buildspec.yml 파일 수정
-```
-    env:
-      - name: url
-	valueFrom:
-	  configMapKeyRef:
-	    name: iptv
-	    key: urlstatus 
-      - name: username
-	valueFrom:
-	  secretKeyRef:
-	    name: iptv
-	    key: username          
-      - name: password
-	valueFrom:
-	  secretKeyRef:
-	    name: iptv
-	    key: password    
+--application.yml // mariaDB 추가 예시
+spring:
+  profiles: real-db
+  datasource:
+        url: jdbc:mariadb://rds주소:포트명(기본은 3306)/database명
+        username: db계정
+        password: db계정 비밀번호
+        driver-class-name: org.mariadb.jdbc.Driver
 ```
 
 ## 동기식 호출 과 Fallback 처리
@@ -376,13 +297,25 @@ buildspec.yml 파일 수정
 # (Assignment) InstallationService.java
 
 	package purifierrentalpjt.external;
+	
+	import org.springframework.cloud.openfeign.FeignClient;
+	import org.springframework.web.bind.annotation.RequestBody;
+	import org.springframework.web.bind.annotation.RequestMapping;
+	import org.springframework.web.bind.annotation.RequestMethod;
+
+	/**
+ 	 * 설치subsystem 동기호출
+ 	 * @author Administrator
+ 	 * 아래 주소는 Gateway주소임
+ 	*/
 
 
-	@FeignClient(name="Installation", url="http://Installation:8080")
+	@FeignClient(name="Installation", url="http://installation:8080")
+	//@FeignClient(name="Installation", url="http://localhost:8083")
 	public interface InstallationService {
 
-		@RequestMapping(method= RequestMethod.PATCH, path="/installations")
-		public void installationCancellation(@RequestBody Installation installation);
+		@RequestMapping(method= RequestMethod.POST, path="/installations")
+    		public void cancelInstallation(@RequestBody Installation installation);
 
 	}
 ```
@@ -395,18 +328,28 @@ buildspec.yml 파일 수정
 
 	@RestController
 	public class InstallationController {
-	    @Autowired
-	    InstallationRepository installationRepository;
 
-	    @RequestMapping(method=RequestMethod.POST, path="/installations")
-	    public void installationCancellation(@RequestBody Installation installation) {
+    	  @Autowired
+    	  InstallationRepository installationRepository;
 
-		Installation installationCancel = installationRepository.findByOrderId(installation.getOrderId());
-		installationCancel.setStatus("INSTALLATIONCANCELED");
-		installationRepository.save(installationCancel);
+    	  /**
+     	   * 설치취소
+     	   * @param installation
+           */
+	  @RequestMapping(method=RequestMethod.POST, path="/installations")
+    	  public void installationCancellation(@RequestBody Installation installation) {
+    	
+    		System.out.println( "### 동기호출 -설치취소=" +ToStringBuilder.reflectionToString(installation) );
 
-	    }
-	}
+    		Optional<Installation> opt = installationRepository.findByOrderId(installation.getOrderId());
+    		if( opt.isPresent()) {
+    			Installation installationCancel =opt.get();
+    			installationCancel.setStatus("installationCanceled");
+    			installationRepository.save(installationCancel);
+    		} else {
+    			System.out.println("### 설치취소 - 못찾음");
+    		}
+    	}
 ```
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
@@ -415,16 +358,14 @@ buildspec.yml 파일 수정
  
 - 이를 위하여 가입 신청에 기록을 남긴 후에 곧바로 가입 신청이 되었다는 도메인 이벤트를 카프카로 송출한다.(Publish)
 ```
-# (order) order.java
+# (order) Order.java
 
     @PostPersist
     public void onPostPersist(){
 
-        if(this.getStatus().equals("JOINORDED")){
-            JoinOrdered joinOrdered = new JoinOrdered();
-            BeanUtils.copyProperties(this, joinOrdered);
-            joinOrdered.publishAfterCommit();
-        }
+        JoinOrdered joinOrdered = new JoinOrdered();
+        BeanUtils.copyProperties(this, joinOrdered);
+        joinOrdered.publishAfterCommit();
     }
 ```
 - 배정 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
@@ -433,23 +374,25 @@ buildspec.yml 파일 수정
 
 @Service
 public class PolicyHandler{
-    @Autowired
-    ManagementCenterRepository managementCenterRepository;
+    @Autowired AssignmentRepository assignmentRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
     public void wheneverJoinOrdered_OrderRequest(@Payload JoinOrdered joinOrdered){
 
-        if(joinOrdered.isMe()){
-            Assignment assignment = new Assignment();
+        if(!joinOrdered.validate()) return;
 
-            assignment.setId(joinOrdered.getId());
-            assignment.setInstallationAddress(joinOrdered.getInstallationAddress());
-            assignment.setStatus("orderRequest");
-            assignment.setEngineerName("Enginner" + joinOrdered.getId());
-            assignment.setEngineerId(joinOrdered.getId());
-            assignment.setOrderId(joinOrdered.getId());
+        System.out.println("\n\n##### listener OrderRequest : " + joinOrdered.toJson() + "\n\n");
 
-            assignmentRepository.save(assignment);
+        Assignment assignment = new Assignment();
+
+        assignment.setId(joinOrdered.getId());
+        assignment.setInstallationAddress(joinOrdered.getInstallationAddress());
+        assignment.setStatus("orderRequest");
+        assignment.setEngineerName("Enginner" + joinOrdered.getId());
+        assignment.setEngineerId(joinOrdered.getId());
+        assignment.setOrderId(joinOrdered.getId());
+
+        assignmentRepository.save(assignment);
         }
     }
 }
