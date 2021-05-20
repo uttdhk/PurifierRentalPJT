@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Order
+  name: order
   labels:
-    app: Order
+    app: order
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: Order
+      app: order
   template:
     metadata:
       labels:
-        app: Order
+        app: order
     spec:
       containers:
-        - name: Order
+        - name: order
           image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-order:latest
           ports:
             - containerPort: 8080

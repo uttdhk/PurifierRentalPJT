@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Installation
+  name: installation
   labels:
-    app: Installation
+    app: installation
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: Installation
+      app: installation
   template:
     metadata:
       labels:
-        app: Installation
+        app: installation
     spec:
       containers:
-        - name: Installation
+        - name: installation
           image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-installation:latest
           ports:
             - containerPort: 8080

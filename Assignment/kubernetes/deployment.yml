@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Assignment
+  name: assignment
   labels:
-    app: Assignment
+    app: assignment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: Assignment
+      app: assignment
   template:
     metadata:
       labels:
-        app: Assignment
+        app: assignment
     spec:
       containers:
-        - name: Assignment
+        - name: assignment
           image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-assignment:latest
           ports:
             - containerPort: 8080
