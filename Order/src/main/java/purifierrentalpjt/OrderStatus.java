@@ -17,7 +17,6 @@ import java.util.List;
 @Table(name="OrderStatus_table")
 public class OrderStatus {
     @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
-
+    private String status;	// 상태정보
 }

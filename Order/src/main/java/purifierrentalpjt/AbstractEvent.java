@@ -85,8 +85,19 @@ public class AbstractEvent {
 		this.eventType = eventType;
 	}
 
-
+	/**
+	 * 이벤트타입체크
+	 * @return
+	 */
     public boolean validate(){
+        return getEventType().equals(getClass().getSimpleName());
+    }
+    
+    /**
+	 * 이벤트타입체크
+	 * @return
+	 */
+    public boolean isMe(){
         return getEventType().equals(getClass().getSimpleName());
     }
 }
