@@ -31,14 +31,17 @@ public class OrderController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/order/joinOrder", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/order/joinOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public boolean joinOrder(
-		@RequestParam("productId") 				Long 	productId, 
+		@RequestParam( value = "productId", required = false) 				Long 	productId, 
 		@RequestParam("productName")  			String 	productName,
 		@RequestParam("installationAddress")  	String 	installationAddress,
 		@RequestParam("customerId")  			Long 	customerId,
 		@RequestParam("orderDate")  			String 	orderDate
 					) throws Exception {
+		
+		
+		// http -f POST localhost:8080/order/joinOrder productId=1 productName=ggg installationAddress=분당 customerId=111 orderDate=20210412
 		
 		// init
 		System.out.println("##### /order/joinOrder  called #####");
@@ -79,7 +82,7 @@ public class OrderController {
 	 * @return
 	 * @throws Exception
 	 */
-	@RequestMapping(value = "/order/cancelOrder", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+	@RequestMapping(value = "/order/cancelOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
 	public boolean cancelOrder(
 		@RequestParam("id") 				Long 	id 
 			) throws Exception {
