@@ -35,3 +35,14 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          env:
+          - name: INIT_NAME
+            valueFrom:
+              secretKeyRef:
+              name: order
+              key: username
+          - name: INIT_PW
+            valueFrom:
+              secretKeyRef:
+              name: order
+              key: password
