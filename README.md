@@ -443,15 +443,15 @@ spring:
         - id: Order
           uri: http://localhost:8081
           predicates:
-            - Path=/orders/** /orderStatuses/**
+            - Path=/orders/**,/order/**,/orderStatuses/**
         - id: Assignment
           uri: http://localhost:8082
           predicates:
-            - Path=/assignments/** 
+            - Path=/assignments/**,/assignment/** 
         - id: Installation
           uri: http://localhost:8083
           predicates:
-            - Path=/installations/** 
+            - Path=/installations/**,/installation/** 
       globalcors:
         corsConfigurations:
           '[/**]':
