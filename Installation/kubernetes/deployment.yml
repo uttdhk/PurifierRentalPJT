@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: installation
-          image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-installation:v1
+          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-installation:v3
           ports:
             - containerPort: 8080
           readinessProbe:
