@@ -609,12 +609,15 @@ kubectl get hpa order -w
 
 - 사용자 50명으로 워크로드를 3분 동안 걸어준다.
 ```
-siege -c50 -t180S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
+
 
 ```
 
 - 오토스케일 발생하지 않음(siege 실행 결과 오류 없이 수행됨 : Availability 100%)
 - 서비스에 복잡한 비즈니스 로직이 포함된 것이 아니어서, CPU 부하를 주지 못한 것으로 추정된다.
+
+![image](https://user-images.githubusercontent.com/76420081/119087445-1ce04600-ba42-11eb-92c8-2f0e2d772562.png)
 
 
 ## 무정지 재배포
