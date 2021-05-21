@@ -11,7 +11,7 @@ spring:
         - id: order
           uri: http://localhost:8081
           predicates:
-            - Path=/orders/** /orderStatuses/**
+            - Path=/order/** /orders/** /orderStatuses/**
         - id: assignment
           uri: http://localhost:8082
           predicates:
