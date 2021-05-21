@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: order
-          image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-order:latest
+          image: 740569282574.dkr.ecr.ap-southeast-1.amazonaws.com/puri-order:v1
           ports:
             - containerPort: 8080
           readinessProbe:
