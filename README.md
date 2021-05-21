@@ -502,35 +502,7 @@ $ kubectl apply -f service.yaml
 ```
 
 ##### 배포 결과
-```
-$ kubectl get all
-NAME                               READY   STATUS    RESTARTS   AGE
-pod/gateway-849986759f-qdp7w       2/2     Running   0          21h
-pod/httpie                         2/2     Running   2          21h
-pod/management-d48c488c7-tcv7b     2/2     Running   0          17h
-pod/management-d48c488c7-wcj2p     2/2     Running   0          17h
-pod/payment-55c5884758-h2nv9       2/2     Running   0          21h
-pod/rental-567bd69584-wm9jw        2/2     Running   0          4h19m
-pod/reservation-559fd5d9f8-tmbnq   2/2     Running   0          21h
-pod/view-6484f74b85-swlgm          2/2     Running   0          21h
-
-NAME                  TYPE           CLUSTER-IP      EXTERNAL-IP                                                                    PORT(S)          AGE
-service/gateway       LoadBalancer   10.100.51.99    a69f85cf88d5143c38768f321c7043aa-1329116461.ap-northeast-2.elb.amazonaws.com   8080:31699/TCP   23h
-service/kubernetes    ClusterIP      10.100.0.1      <none>                                                                         443/TCP          24h
-service/management    ClusterIP      10.100.60.100   <none>                                                                         8080/TCP         23h
-service/payment       ClusterIP      10.100.142.82   <none>                                                                         8080/TCP         23h
-service/rental        ClusterIP      10.100.81.85    <none>                                                                         8080/TCP         23h
-service/reservation   ClusterIP      10.100.4.223    <none>                                                                         8080/TCP         23h
-service/view          ClusterIP      10.100.71.102   <none>                                                                         8080/TCP         23h
-
-NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/gateway       1/1     1            1           21h
-deployment.apps/management    2/2     2            2           17h
-deployment.apps/payment       1/1     1            1           21h
-deployment.apps/rental        1/1     1            1           21h
-deployment.apps/reservation   1/1     1            1           21h
-deployment.apps/view          1/1     1            1           21h
-```
+![image](https://user-images.githubusercontent.com/76420081/119082405-fa95fa80-ba38-11eb-8ad5-c7cd5b4f736a.png)
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 
@@ -578,6 +550,43 @@ EOF
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작을 확인한다.
 - 동시사용자 100명
 - 60초 동안 실시
+
+### Liveness
+pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상태인 경우 pod를 재기동하도록 한다.   
+
+아래의 값으로 liveness를 설정한다.
+- 재기동 제어값 : /tmp/healthy 파일의 존재를 확인
+- 기동 대기 시간 : 3초
+- 재기동 횟수 : 5번까지 재시도
+
+이때, 재기동 제어값인 /tmp/healthy파일을 강제로 지워 liveness가 pod를 비정상 상태라고 판단하도록 하였다.    
+5번 재시도 후에도 파드가 뜨지 않았을 경우 CrashLoopBackOff 상태가 됨을 확인하였다.   
+##### payment에 Liveness 적용한 내용
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+...
+    spec:
+      containers:
+        - name: payment
+          image: 496278789073.dkr.ecr.ap-northeast-2.amazonaws.com/ecr-skcc-team2-payment:v1
+          args:
+          - /bin/sh
+          - -c
+          - touch /tmp/healthy; sleep 10; rm -rf /tmp/healthy; sleep 600;
+...
+          livenessProbe:                 #적용 부분
+            exec:
+              command:
+              - cat
+              - /tmp/healthy
+            initialDelaySeconds: 3
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+```
+#### 테스트 결과 
+![](images/liveness.PNG)
 
 
 ### 오토스케일 아웃
