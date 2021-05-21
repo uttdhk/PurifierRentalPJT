@@ -44,6 +44,16 @@ public class OrderController {
 					) throws Exception {
 		
 		
+		System.out.println( "INIT_NAME=" +System.getenv().get("INIT_NAME"));
+		System.out.println( "INIT_NAME=" +System.getenv().get("INIT_PW"));
+		
+		System.out.println( "INIT_NAME=" +System.getProperty("INIT_NAME"));
+		System.out.println( "INIT_NAME=" +System.getProperty("INIT_PW"));
+		
+		
+		System.getenv().get("");
+		
+		
 		// http -f POST localhost:8080/order/joinOrder productId=1 productName=ggg installationAddress=분당 customerId=111 orderDate=20210412
 		
 		// init
