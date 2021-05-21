@@ -1,5 +1,5 @@
 # PurifierRentalPJT
-21년 1차수 3조
+21년 1차수 과제
 # PurifierRentalProject (정수기렌탈 서비스)
 
 3조 정수기 렌탈 신청 서비스 프로젝트 입니다.
