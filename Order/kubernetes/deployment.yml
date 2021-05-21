@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: order
-          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-order:v4
+          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-order:v5
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -39,10 +39,10 @@ spec:
           - name: INIT_NAME
             valueFrom:
               secretKeyRef:
-              name: order
-              key: username
+                name: order
+                key: username
           - name: INIT_PW
             valueFrom:
               secretKeyRef:
-              name: order
-              key: password
+                name: order
+                key: password
