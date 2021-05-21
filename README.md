@@ -483,8 +483,8 @@ EKS 클러스터에 접속한 뒤, 각 서비스의 deployment.yaml, service.yam
   - Docker Image 저장소 : AWS의 ECR(Elastic Container Registry)
 ##### 배포 명령어
 ```
-$ kubectl apply -f deployment.yaml
-$ kubectl apply -f svc.yaml
+$ kubectl apply -f deployment.yml
+$ kubectl apply -f service.yaml
 ```
 
 ##### 배포 결과
