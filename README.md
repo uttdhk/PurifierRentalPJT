@@ -2,7 +2,7 @@
 21년 1차수 과제
 # PurifierRentalProject (정수기렌탈 서비스)
 
-3조 정수기 렌탈 신청 서비스 프로젝트 입니다.
+정수기 렌탈 신청 서비스 프로젝트 입니다.
 
 # Table of contents
 
@@ -118,7 +118,7 @@
 
 
 ## Event Storming 결과
-* MSAEz 로 모델링한 이벤트스토밍 결과:  
+* MSAEZ 로 모델링한 이벤트스토밍 결과:  
   - http://www.msaez.io/#/storming/IkrhsmX1DtOtbLQM9ri9QJ9uoRm2/every/ee3188d76ffc9344628b8a9183bcc9b1
 
 ### 이벤트 도출
