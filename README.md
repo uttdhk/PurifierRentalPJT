@@ -408,18 +408,23 @@ public class PolicyHandler{
 - 설계 : MSAEz 설계의 view 매핑 설정 참조
 
 - 주문생성
+
 ![image](https://user-images.githubusercontent.com/76420081/119001165-b23df480-b9c6-11eb-9d62-bed7406f0709.png)
 
 - 카프카 메시지
+
 ![image](https://user-images.githubusercontent.com/76420081/119001370-df8aa280-b9c6-11eb-867f-fbd78ab89031.png)
 
 - 주문취소
+
 ![image](https://user-images.githubusercontent.com/76420081/119001667-25476b00-b9c7-11eb-8609-c6a7e9a02dfe.png)
 
 - 카프카 메시지
+
 ![image](https://user-images.githubusercontent.com/76420081/119001720-32645a00-b9c7-11eb-81aa-58191e7bef1d.png)
 
 - 뷰테이블 수신처리
+
 ![image](https://user-images.githubusercontent.com/76420081/119002598-fa114b80-b9c7-11eb-9aac-ed6ac136be4c.png)
 
 
