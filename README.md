@@ -671,7 +671,7 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 한다.
 ```
-siege -c30 -t150S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
 ```
 
 - readinessProbe, livenessProbe 설정되지 않은 상태로 buildspec.yml을 수정한다.
@@ -695,9 +695,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: iptv
+  name: order
 data:
-  urlstatus: "jdbc:mysql://iptv.cgzkudckye4b.us-east-2.rds.amazonaws.com:3306/orderstatus?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8"
+  urlstatus: "jdbc:mysql://order.cgzkudckye4b.ap-southeast-2:3306/orderstatus?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8"
 EOF
 ```
 
@@ -712,7 +712,7 @@ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: iptv
+  name: order
 type: Opaque
 data:
   username: xxxxx <- 보안 상, 임의의 값으로 표시함 
@@ -786,11 +786,11 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
 
 
 # 시연
- 1. 인터넷 가입신청 -> installation 접수 완료 상태
+ 1. 정수기 렌탈 서비스 가입신청 -> installation 접수 완료 상태
  2. 설치 기사 설치 완료 처리 -> 가입 신청 완료 상태
  3. 가입 취소
  4. EDA 구현
-   - ManagementCenter 장애 상황에서 order(가입 신청) 정상 처리
-   - ManagementCenter 정상 전환 시 수신 받지 못한 이벤트 처리
+   - Assignment 장애 상황에서 order(가입 신청) 정상 처리
+   - Assignment 정상 전환 시 수신 받지 못한 이벤트 처리
  5. 무정지 재배포
  6. 오토 스케일링
