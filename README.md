@@ -470,25 +470,6 @@ server:
 - EKS에 배포 시, MSA는 Service type을 ClusterIP(default)로 설정하여, 클러스터 내부에서만 호출 가능하도록 한다.
 - API Gateway는 Service type을 LoadBalancer로 설정하여 외부 호출에 대한 라우팅을 처리한다.
 
-```
-# buildspec.yml 설정
-
-  cat <<EOF | kubectl apply -f -
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: $_PROJECT_NAME
-    labels:
-      app: $_PROJECT_NAME
-    spec:
-    ports:
-      - port: 8080
-        targetPort: 8080
-    selector:
-      app: $_PROJECT_NAME
-    type: LoadBalancer
-  EOF
-```
 
 
 # 운영
