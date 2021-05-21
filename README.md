@@ -600,6 +600,8 @@ EOF
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작을 확인한다.
 - 동시사용자 100명
 - 60초 동안 실시
+- 결과 화면
+![image](https://user-images.githubusercontent.com/76420081/119089217-c32d4b00-ba44-11eb-8038-9c86b9c92897.png)
 
 ### Liveness
 pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상태인 경우 pod를 재기동하도록 한다.   
