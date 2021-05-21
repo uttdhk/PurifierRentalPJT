@@ -515,16 +515,61 @@ $ kubectl apply -f service.yaml
   - Spring FeignClient + Hystrix 옵션을 사용하여 구현할 경우, 도메인 로직과 부가 기능 로직이 서비스에 같이 구현된다.
   - istio를 사용해서 서킷 브레이킹 적용이 가능하다.
 
-- 서비스를 istio로 배포(동기 호출하는 Request/Response 2개 서비스)
+- istio 설치
 
-```
-kubectl get deploy managementcenter -o yaml > managementcenter_deploy.yaml 
-kubectl apply -f <(istioctl kube-inject -f managementcenter_deploy.yaml) 
 
-kubectl get deploy installation -o yaml > installation_deploy.yaml 
-kubectl apply -f <(istioctl kube-inject -f installation_deploy.yaml) 
+![image](https://user-images.githubusercontent.com/76420081/119083009-2665b000-ba3a-11eb-8a43-aeb9b7e7db98.png)
 
-```
+![image](https://user-images.githubusercontent.com/76420081/119083153-6331a700-ba3a-11eb-9543-475bb812c176.png)
+
+![image](https://user-images.githubusercontent.com/76420081/119083538-1b5f4f80-ba3b-11eb-952d-89e7d7adec23.png)
+http://acdf28d4a2a744330ad8f7db4e05aeac-1896393867.ap-southeast-2.elb.amazonaws.com:20001/
+
+![image](https://user-images.githubusercontent.com/76420081/119086647-c292b580-ba40-11eb-9450-7b47e4128157.png)
+
+
+ root@labs--2007877942:/home/project# curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   102  100   102    0     0    153      0 --:--:-- --:--:-- --:--:--   152
+100  4573  100  4573    0     0   4880      0 --:--:-- --:--:-- --:--:--  4880
+
+Downloading istio-1.7.1 from https://github.com/istio/istio/releases/download/1.7.1/istio-1.7.1-linux-amd64.tar.gz ...
+
+Istio 1.7.1 Download Complete!
+
+Istio has been successfully downloaded into the istio-1.7.1 folder on your system.
+
+Next Steps:
+See https://istio.io/latest/docs/setup/install/ to add Istio to your Kubernetes cluster.
+
+To configure the istioctl client tool for your workstation,
+add the /home/project/istio-1.7.1/bin directory to your environment path variable with:
+         export PATH="$PATH:/home/project/istio-1.7.1/bin"
+
+Begin the Istio pre-installation check by running:
+         istioctl x precheck 
+
+Need more information? Visit https://istio.io/latest/docs/setup/install/ 
+root@labs--2007877942:/home/project# ㅣㅣ
+bash: ㅣㅣ: command not found
+root@labs--2007877942:/home/project# ll
+total 24
+drwxr-xr-x 4 root root  6144 May 21 04:37 ./
+drwxrwxr-x 1 root root    19 May  3 04:35 ../
+-rwx------ 1 root root 11248 May 21 03:06 get_helm.sh*
+drwxr-x--- 6 root root  6144 Sep  9  2020 istio-1.7.1/
+drwxr-xr-x 4 root root  6144 May 21 02:37 team/
+root@labs--2007877942:/home/project# cd istio-1.7.1/
+root@labs--2007877942:/home/project/istio-1.7.1# export PATH=$PWD/bin:$PATH
+root@labs--2007877942:/home/project/istio-1.7.1# istioctl install --set profile=demo --set hub=gcr.io/istio-release
+
+✔ Istio core installed                                                                            
+✔ Istiod installed                                                                                
+✔ Ingress gateways installed                                                                                                                                                                                         
+✔ Egress gateways installed                                                                                                                                                                                          
+✔ Installation complete                                                                                                                 
+
 
 - istio 에서 서킷브레이커 설정(DestinationRule)
 ```
