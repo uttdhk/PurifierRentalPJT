@@ -45,7 +45,7 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: my-kafka.kafka.svc.cluster.local:9092
+          brokers: my-kafka.kafka2.svc.cluster.local:9092
         streams:
           binder:
             configuration:
@@ -62,3 +62,13 @@ spring:
         event-out:
           destination: purifierrentalpjt
           contentType: application/json
+          
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    # 전역설정
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
