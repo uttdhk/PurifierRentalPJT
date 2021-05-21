@@ -443,15 +443,15 @@ spring:
         - id: Order
           uri: http://localhost:8081
           predicates:
-            - Path=/orders/** /orderStatuses/**
+            - Path=/orders/**,/order/**,/orderStatuses/**
         - id: Assignment
           uri: http://localhost:8082
           predicates:
-            - Path=/assignments/** 
+            - Path=/assignments/**,/assignment/** 
         - id: Installation
           uri: http://localhost:8083
           predicates:
-            - Path=/installations/** 
+            - Path=/installations/**,/installation/** 
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -470,25 +470,6 @@ server:
 - EKS에 배포 시, MSA는 Service type을 ClusterIP(default)로 설정하여, 클러스터 내부에서만 호출 가능하도록 한다.
 - API Gateway는 Service type을 LoadBalancer로 설정하여 외부 호출에 대한 라우팅을 처리한다.
 
-```
-# buildspec.yml 설정
-
-  cat <<EOF | kubectl apply -f -
-  apiVersion: v1
-  kind: Service
-  metadata:
-    name: $_PROJECT_NAME
-    labels:
-      app: $_PROJECT_NAME
-    spec:
-    ports:
-      - port: 8080
-        targetPort: 8080
-    selector:
-      app: $_PROJECT_NAME
-    type: LoadBalancer
-  EOF
-```
 
 
 # 운영
@@ -515,16 +496,61 @@ $ kubectl apply -f service.yaml
   - Spring FeignClient + Hystrix 옵션을 사용하여 구현할 경우, 도메인 로직과 부가 기능 로직이 서비스에 같이 구현된다.
   - istio를 사용해서 서킷 브레이킹 적용이 가능하다.
 
-- 서비스를 istio로 배포(동기 호출하는 Request/Response 2개 서비스)
+- istio 설치
 
-```
-kubectl get deploy managementcenter -o yaml > managementcenter_deploy.yaml 
-kubectl apply -f <(istioctl kube-inject -f managementcenter_deploy.yaml) 
 
-kubectl get deploy installation -o yaml > installation_deploy.yaml 
-kubectl apply -f <(istioctl kube-inject -f installation_deploy.yaml) 
+![image](https://user-images.githubusercontent.com/76420081/119083009-2665b000-ba3a-11eb-8a43-aeb9b7e7db98.png)
 
-```
+![image](https://user-images.githubusercontent.com/76420081/119083153-6331a700-ba3a-11eb-9543-475bb812c176.png)
+
+![image](https://user-images.githubusercontent.com/76420081/119083538-1b5f4f80-ba3b-11eb-952d-89e7d7adec23.png)
+http://acdf28d4a2a744330ad8f7db4e05aeac-1896393867.ap-southeast-2.elb.amazonaws.com:20001/
+
+![image](https://user-images.githubusercontent.com/76420081/119086647-c292b580-ba40-11eb-9450-7b47e4128157.png)
+
+
+ root@labs--2007877942:/home/project# curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   102  100   102    0     0    153      0 --:--:-- --:--:-- --:--:--   152
+100  4573  100  4573    0     0   4880      0 --:--:-- --:--:-- --:--:--  4880
+
+Downloading istio-1.7.1 from https://github.com/istio/istio/releases/download/1.7.1/istio-1.7.1-linux-amd64.tar.gz ...
+
+Istio 1.7.1 Download Complete!
+
+Istio has been successfully downloaded into the istio-1.7.1 folder on your system.
+
+Next Steps:
+See https://istio.io/latest/docs/setup/install/ to add Istio to your Kubernetes cluster.
+
+To configure the istioctl client tool for your workstation,
+add the /home/project/istio-1.7.1/bin directory to your environment path variable with:
+         export PATH="$PATH:/home/project/istio-1.7.1/bin"
+
+Begin the Istio pre-installation check by running:
+         istioctl x precheck 
+
+Need more information? Visit https://istio.io/latest/docs/setup/install/ 
+root@labs--2007877942:/home/project# ㅣㅣ
+bash: ㅣㅣ: command not found
+root@labs--2007877942:/home/project# ll
+total 24
+drwxr-xr-x 4 root root  6144 May 21 04:37 ./
+drwxrwxr-x 1 root root    19 May  3 04:35 ../
+-rwx------ 1 root root 11248 May 21 03:06 get_helm.sh*
+drwxr-x--- 6 root root  6144 Sep  9  2020 istio-1.7.1/
+drwxr-xr-x 4 root root  6144 May 21 02:37 team/
+root@labs--2007877942:/home/project# cd istio-1.7.1/
+root@labs--2007877942:/home/project/istio-1.7.1# export PATH=$PWD/bin:$PATH
+root@labs--2007877942:/home/project/istio-1.7.1# istioctl install --set profile=demo --set hub=gcr.io/istio-release
+
+✔ Istio core installed                                                                            
+✔ Istiod installed                                                                                
+✔ Ingress gateways installed                                                                                                                                                                                         
+✔ Egress gateways installed                                                                                                                                                                                          
+✔ Installation complete                                                                                                                 
+
 
 - istio 에서 서킷브레이커 설정(DestinationRule)
 ```
@@ -532,9 +558,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: installation
+  name: order
 spec:
-  host: installation
+  host: order
   trafficPolicy:
     connectionPool:
       tcp:
@@ -555,6 +581,9 @@ EOF
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작을 확인한다.
 - 동시사용자 100명
 - 60초 동안 실시
+- 결과 화면
+![image](https://user-images.githubusercontent.com/76420081/119089217-c32d4b00-ba44-11eb-8038-9c86b9c92897.png)
+![kiali](https://user-images.githubusercontent.com/81946287/119092566-8b74d200-ba49-11eb-8ce1-e38ebfcacd13.png)
 
 ### Liveness
 pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상태인 경우 pod를 재기동하도록 한다.   
@@ -589,7 +618,6 @@ kind: Deployment
             periodSeconds: 5
             failureThreshold: 5
 ```
-#### 테스트 결과 
 
 
 
@@ -609,32 +637,33 @@ kubectl get hpa order -w
 
 - 사용자 50명으로 워크로드를 3분 동안 걸어준다.
 ```
-siege -c50 -t180S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
+
 
 ```
 
 - 오토스케일 발생하지 않음(siege 실행 결과 오류 없이 수행됨 : Availability 100%)
 - 서비스에 복잡한 비즈니스 로직이 포함된 것이 아니어서, CPU 부하를 주지 못한 것으로 추정된다.
 
+![image](https://user-images.githubusercontent.com/76420081/119087445-1ce04600-ba42-11eb-92c8-2f0e2d772562.png)
+
 
 ## 무정지 재배포
 
-* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
+* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 서킷브레이커 설정을 제거함
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 한다.
 ```
-siege -c30 -t150S --content-type "application/json" 'http://a518c6481215d478b8b769aa034cdff4-46291629.us-east-2.elb.amazonaws.com:8080/orders POST {"productId": "2001", "productName": "internet", "installationAddress": "Seoul", "customerId": "1", "orderDate": "20200715", "status": "JOINORDED"}'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
 ```
 
 - readinessProbe, livenessProbe 설정되지 않은 상태로 buildspec.yml을 수정한다.
 - Github에 buildspec.yml 수정 발생으로 CodeBuild 자동 빌드/배포 수행된다.
-- siege 수행 결과 : Availability가 100% 미만으로 떨어짐(79.06%) -> 컨테이너 배포는 되었지만 ready 되지 않은 상태에서 호출 유입됨
-![image](https://user-images.githubusercontent.com/56263370/87494646-80634f80-c68a-11ea-98ce-1779224ecfbf.png)
+- siege 수행 결과 : 
 
 - readinessProbe, livenessProbe 설정하고 buildspec.yml을 수정한다.
 - Github에 buildspec.yml 수정 발생으로 CodeBuild 자동 빌드/배포 수행된다.
-- siege 수행 결과 : Availability가 100%로 무정지 재배포 수행 확인할 수 있다.
-![image](https://user-images.githubusercontent.com/56263370/87494675-97a23d00-c68a-11ea-9ad2-a8859861ce9d.png)
+- siege 수행 결과 : 
 
 
 ## ConfigMap 적용
@@ -647,9 +676,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: iptv
+  name: order
 data:
-  urlstatus: "jdbc:mysql://iptv.cgzkudckye4b.us-east-2.rds.amazonaws.com:3306/orderstatus?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8"
+  urlstatus: "jdbc:mysql://order.cgzkudckye4b.ap-southeast-2:3306/orderstatus?serverTimezone=UTC&useUnicode=true&characterEncoding=utf8"
 EOF
 ```
 
@@ -664,7 +693,7 @@ cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: iptv
+  name: order
 type: Opaque
 data:
   username: xxxxx <- 보안 상, 임의의 값으로 표시함 
@@ -738,11 +767,11 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
 
 
 # 시연
- 1. 인터넷 가입신청 -> installation 접수 완료 상태
+ 1. 정수기 렌탈 서비스 가입신청 -> installation 접수 완료 상태
  2. 설치 기사 설치 완료 처리 -> 가입 신청 완료 상태
  3. 가입 취소
  4. EDA 구현
-   - ManagementCenter 장애 상황에서 order(가입 신청) 정상 처리
-   - ManagementCenter 정상 전환 시 수신 받지 못한 이벤트 처리
+   - Assignment 장애 상황에서 order(가입 신청) 정상 처리
+   - Assignment 정상 전환 시 수신 받지 못한 이벤트 처리
  5. 무정지 재배포
  6. 오토 스케일링
