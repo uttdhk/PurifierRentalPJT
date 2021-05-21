@@ -617,7 +617,6 @@ kind: Deployment
             periodSeconds: 5
             failureThreshold: 5
 ```
-#### 테스트 결과 
 
 
 
@@ -650,7 +649,7 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 
 ## 무정지 재배포
 
-* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 CB 설정을 제거함
+* 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 서킷브레이커 설정을 제거함
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 한다.
 ```
@@ -659,13 +658,11 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 
 - readinessProbe, livenessProbe 설정되지 않은 상태로 buildspec.yml을 수정한다.
 - Github에 buildspec.yml 수정 발생으로 CodeBuild 자동 빌드/배포 수행된다.
-- siege 수행 결과 : Availability가 100% 미만으로 떨어짐(79.06%) -> 컨테이너 배포는 되었지만 ready 되지 않은 상태에서 호출 유입됨
-![image](https://user-images.githubusercontent.com/56263370/87494646-80634f80-c68a-11ea-98ce-1779224ecfbf.png)
+- siege 수행 결과 : 
 
 - readinessProbe, livenessProbe 설정하고 buildspec.yml을 수정한다.
 - Github에 buildspec.yml 수정 발생으로 CodeBuild 자동 빌드/배포 수행된다.
-- siege 수행 결과 : Availability가 100%로 무정지 재배포 수행 확인할 수 있다.
-![image](https://user-images.githubusercontent.com/56263370/87494675-97a23d00-c68a-11ea-9ad2-a8859861ce9d.png)
+- siege 수행 결과 : 
 
 
 ## ConfigMap 적용
