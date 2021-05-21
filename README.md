@@ -532,9 +532,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: installation
+  name: order
 spec:
-  host: installation
+  host: order
   trafficPolicy:
     connectionPool:
       tcp:
