@@ -320,6 +320,61 @@ spring:
 	}
 ```
 
+
+
+
+재고 확인 및 수정 요청에 대한 동기 호출 처리
+
+
+```
+# (Order) ProductService.java
+@FeignClient(name="Product", url="http://product:8080")
+//@FeignClient(name="Product", url="http://localhost:8084")
+public interface ProductService {
+
+    @RequestMapping(method= RequestMethod.GET, path="/checkAndModifyStock")
+    public boolean checkAndModifyStock(@RequestParam("productId") Long productId,
+                                       @RequestParam("countStock") int countStock);
+
+}
+```
+
+```
+# (Product) ProductController.java
+@RequestMapping(value = "/checkAndModifyStock",
+        method = RequestMethod.GET,
+        produces = "application/json;charset=UTF-8")
+
+public boolean checkAndModifyStock(@RequestParam("productId") Long productId,
+                                @RequestParam("countStock") int countStock)
+        throws Exception {
+
+        System.out.println("##### 재고 수정 Command 요청 받음(동기호출) #####");
+
+        boolean status = false;
+        Optional<Product> productOptional = productRepository.findByProductId(productId);
+        Product product = productOptional.get();
+
+        // 현재 재고수량이 요청 수량보다 
+        //  많으면, 현재 재고수량을 요청 수량만큼 재고에서 감소
+        //  적으면, 재고 수량 변경 없음          
+        if (product.getStock() >= countStock) {
+                product.setStock(product.getStock() - countStock);
+                status = true;
+
+                System.out.println("##### 재고 수정 완료 #####");
+                productRepository.save(product);
+        }else{
+                System.out.println("##### 재고 부족으로 재고 수정 불가 #####");
+        }
+
+        return status;
+
+        }
+
+ }
+```
+
 정수기 렌탈 서비스 가입 취소 요청(cancelRequest)을 받은 후, 처리하는 부분
 ```
 # (Installation) InstallationController.java
