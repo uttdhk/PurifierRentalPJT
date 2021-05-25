@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Administrator
  *	아래 주소는 GW주소임
  */
-@FeignClient(name="Installation", url="http://installation:8080")
-//FeignClient(name="Installation", url="http://localhost:8083")
+//@FeignClient(name="Installation", url="http://installation:8080")
+@FeignClient(name="Installation", url="http://localhost:8083")
 public interface InstallationService {
 
     @RequestMapping(method= RequestMethod.POST, path="/installations")

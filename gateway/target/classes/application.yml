@@ -11,15 +11,19 @@ spring:
         - id: order
           uri: http://localhost:8081
           predicates:
-            - Path=/orders/** /orderStatuses/**
+            - Path=/order/**,/orders/**,/orderStatuses/**
         - id: assignment
           uri: http://localhost:8082
           predicates:
-            - Path=/assignments/** 
+            - Path=/assignments/**,/assignment/**  
         - id: installation
           uri: http://localhost:8083
           predicates:
-            - Path=/installations/** 
+            - Path=/installations/**,/installation/**
+        - id: product
+          uri: http://localhost:8084
+          predicates:
+            - Path=/products/**
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -42,15 +46,19 @@ spring:
         - id: order
           uri: http://order:8080
           predicates:
-            - Path=/orders/** /orderStatuses/**
+            - Path=/order/**,/orders/**,/orderStatuses/**
         - id: assignment
           uri: http://assignment:8080
           predicates:
-            - Path=/assignments/** 
+            - Path=/assignment/**,/assignments/** 
         - id: installation
           uri: http://installation:8080
           predicates:
-            - Path=/installations/** 
+            - Path=/installation/**,/installations/** 
+        - id: Product
+          uri: http://product:8080
+          predicates:
+            - Path=/products/** 
       globalcors:
         corsConfigurations:
           '[/**]':

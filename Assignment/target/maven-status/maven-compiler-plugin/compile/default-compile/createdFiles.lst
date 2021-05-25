@@ -1,0 +1,16 @@
+purifierrentalpjt\AssignmentRepository.class
+purifierrentalpjt\external\Installation.class
+purifierrentalpjt\AssignmentController.class
+purifierrentalpjt\AbstractEvent.class
+purifierrentalpjt\config\kafka\KafkaProcessor.class
+purifierrentalpjt\EngineerAssigned.class
+purifierrentalpjt\AbstractEvent$1.class
+purifierrentalpjt\external\InstallationService.class
+purifierrentalpjt\JoinOrdered.class
+purifierrentalpjt\PolicyHandler.class
+purifierrentalpjt\AssignmentApplication.class
+purifierrentalpjt\JoinCompleted.class
+purifierrentalpjt\OrderCancelAccepted.class
+purifierrentalpjt\Assignment.class
+purifierrentalpjt\InstallationCompleted.class
+purifierrentalpjt\CancelOrdered.class
