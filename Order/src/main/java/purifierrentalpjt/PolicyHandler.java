@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+import java.util.Optional;
 
 /**
  * Kafka에서 들어오는 MQ메시지 처리기
@@ -29,10 +30,12 @@ public class PolicyHandler{
         if(!orderCancelAccepted.validate()) return;
 
         System.out.println("\n\n##### listener OrderCancelAccept : " + orderCancelAccepted.toJson() + "\n\n");
+        
+        Optional<Order> orders = orderRepository.findById(orderCancelAccepted.getOrderId());
+        orders.get().setId(orderCancelAccepted.getId());
+        orders.get().setStatus("OrderCancelAccept");
+        orderRepository.save(orders.get());
 
-        // Sample Logic //
-        Order order = new Order();
-        orderRepository.save(order);
     }
     
     /**
@@ -46,9 +49,10 @@ public class PolicyHandler{
 
         System.out.println("\n\n##### listener JoinCompletionNotify : " + joinCompleted.toJson() + "\n\n");
 
-        // Sample Logic //
-        Order order = new Order();
-        orderRepository.save(order);
+        Optional<Order> orders = orderRepository.findById(joinCompleted.getOrderId());
+        orders.get().setId(joinCompleted.getId());
+        orders.get().setStatus("JoinCompletionNotify");
+        orderRepository.save(orders.get());
             
     }
 

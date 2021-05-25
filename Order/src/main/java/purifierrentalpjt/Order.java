@@ -45,15 +45,24 @@ public class Order {
      */
     @PostPersist
     public void onPostPersist(){
-    	/* 안쓰는 로직같다...
-        OrderCanceled orderCanceled = new OrderCanceled();
-        BeanUtils.copyProperties(this, orderCanceled);
-        orderCanceled.publishAfterCommit();
-        */
-
+    
+        System.out.println("##### 주문 생성 Pub(orderRequest) #####");
         JoinOrdered joinOrdered = new JoinOrdered();
         BeanUtils.copyProperties(this, joinOrdered);
         joinOrdered.publishAfterCommit();
+
+
+        ////////////////////////////////////////
+        /*
+        System.out.println("##### 재고 확인 동기 호출 시작 #####");
+        purifierrentalpjt.external.Product product = new purifierrentalpjt.external.Product();
+
+        product.setProductId(this.getProductId());
+       
+
+        OrderApplication.applicationContext.getBean(purifierrentalpjt.external.ProductService.class)
+        .checkAndModifyStock(product.getProductId(), 5);
+        */
 
     }
     
@@ -62,17 +71,21 @@ public class Order {
      */
     @PreRemove
     public void onPreRemove() {
+        /*
     	CancelOrdered cancelOrdered = new CancelOrdered();
     	BeanUtils.copyProperties(this, cancelOrdered);
     	cancelOrdered.publishAfterCommit();
+        */
     }
 
     /**
-     * 주문변경시, 이벤트발생
+     * 주문취소 시, 이벤트발생
      */
     @PostUpdate
     public void onPostUpdate(){
-      
+        CancelOrdered cancelOrdered = new CancelOrdered();
+    	BeanUtils.copyProperties(this, cancelOrdered);
+    	cancelOrdered.publishAfterCommit();
     }
 
 }

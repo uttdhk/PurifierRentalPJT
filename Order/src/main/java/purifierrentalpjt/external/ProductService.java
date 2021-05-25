@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Date;
 
 //@FeignClient(name="Product", url="http://product:8080")
-@FeignClient(name="Product", url="http://localhost:8084")
+@FeignClient(name="product", url="http://localhost:8084")
 public interface ProductService {
 
     @RequestMapping(method= RequestMethod.GET, path="/checkAndModifyStock")

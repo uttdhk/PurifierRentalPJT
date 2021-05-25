@@ -104,12 +104,17 @@ public class OrderController {
 		System.out.println("##### /order/cancelOrder  called #####");
 		boolean status = false;
 
-		// 주문검색후, 삭제
+		// 주문검색후, 삭제 상태로만 변경
 		Optional<Order> orderOpt =orderRepository.findById(id);
 		if( orderOpt.isPresent()) {
 			Order order =orderOpt.get();
-			orderRepository.delete(order);
+			//orderRepository.delete(order);
 			status = true;
+
+			//order.setId(Long.valueOf(orderId));
+			order.setStatus("CancelOrder");
+			orderRepository.save(order);
+
 		} 
 		
 		return status;

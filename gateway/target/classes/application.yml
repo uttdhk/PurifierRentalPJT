@@ -55,7 +55,7 @@ spring:
           uri: http://installation:8080
           predicates:
             - Path=/installation/**,/installations/** 
-        - id: Product
+        - id: product
           uri: http://product:8080
           predicates:
             - Path=/products/** 

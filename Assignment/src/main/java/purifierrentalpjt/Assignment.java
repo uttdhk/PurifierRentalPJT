@@ -24,17 +24,49 @@ public class Assignment {
     private String engineerName;
     private String status;
 
+
+    @PostUpdate
+    public void onPostUpdate(){
+
+        
+        System.out.println("##### 주문 취소에 onPostUpdate #####" + this.getStatus());
+
+       // if (this.getStatus().equals("cancelRequest")) {
+
+            System.out.println("##### 주문 취소에 대한 승인 kafka 발행 #####");
+            OrderCancelAccepted orderCancelAccepted = new OrderCancelAccepted();
+            
+            orderCancelAccepted.setId(this.getId()); 
+            orderCancelAccepted.setOrderId(this.getOrderId()); 
+            orderCancelAccepted.setStatus("orderCancelAccept"); 
+
+            BeanUtils.copyProperties(this, orderCancelAccepted);
+            orderCancelAccepted.publishAfterCommit();
+
+
+            System.out.println("##### 설치 취소 동기 호출 시작 #####");
+            purifierrentalpjt.external.Installation installation = new purifierrentalpjt.external.Installation();
+
+            installation.setId(this.getId());
+            installation.setOrderId(this.getOrderId());
+
+            AssignmentApplication.applicationContext.getBean(purifierrentalpjt.external.InstallationService.class)
+            .cancelInstallation(installation);
+
+      //  }
+    }
+
     @PostPersist
     public void onPostPersist(){
         
-        System.out.println(this.getStatus() + "POST TEST");
+        System.out.println(this.getStatus() + "POST 처리");
         
         if(this.getStatus().equals("orderRequest")) {
 
             EngineerAssigned engineerAssigned = new EngineerAssigned();
 
             engineerAssigned.setId(this.getId()); 
-            engineerAssigned.setOrderId(this.getId()); 
+            engineerAssigned.setOrderId(this.getOrderId()); 
             engineerAssigned.setInstallationAddress(this.getInstallationAddress()); 
             engineerAssigned.setEngineerId(this.getEngineerId()); 
             engineerAssigned.setEngineerName(this.getEngineerName()); 
@@ -53,25 +85,7 @@ public class Assignment {
             BeanUtils.copyProperties(this, joinCompleted);
             joinCompleted.publishAfterCommit();
 
-        } else if (this.getStatus().equals("cancelRequest")) {
-
-            OrderCancelAccepted orderCancelAccepted = new OrderCancelAccepted();
-            
-            orderCancelAccepted.setId(this.getId()); 
-            orderCancelAccepted.setOrderId(this.getId()); 
-            orderCancelAccepted.setStatus("orderCancelAccept"); 
-
-            BeanUtils.copyProperties(this, orderCancelAccepted);
-            orderCancelAccepted.publishAfterCommit();
-
-            purifierrentalpjt.external.Installation installation = new purifierrentalpjt.external.Installation();
-
-            installation.setId(this.getId());
-
-            AssignmentApplication.applicationContext.getBean(purifierrentalpjt.external.InstallationService.class)
-            .cancelInstallation(installation);
-
-        }
+        } 
 
     }
 
