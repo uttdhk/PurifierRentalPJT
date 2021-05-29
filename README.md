@@ -406,6 +406,60 @@ public class PolicyHandler{
 가입신청은 배정 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 배정 서비스가 유지보수로 인해 잠시 내려간 상태라도 가입신청을 받는데 문제가 없다.
 
 
+
+```
+# (order) Order.java
+
+    @PostUpdate
+    public void onPostUpdate(){
+         
+        // 후기 등록시, 이벤트발생
+
+        if(this.getStatus().equals("commentRequest")) {
+
+            System.out.println("##### 코멘트 등록 Pub(" + this.getStatus() + ") #####");
+            CommentRegistered commentRegistered = new CommentRegistered();
+    
+            commentRegistered.setId(this.getId()); 
+            commentRegistered.setCustomerId(this.getCustomerId()); 
+            commentRegistered.setProductId(this.getProductId()); 
+            commentRegistered.setProductName(this.getProductName()); 
+            commentRegistered.setPoint(this.getPoint()); 
+            commentRegistered.setCommentMessage(this.getCommentMessage()); 
+    
+            BeanUtils.copyProperties(this, commentRegistered);
+            commentRegistered.publishAfterCommit();
+        }
+    }
+```
+- 고객 관리 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
+```
+# (customer) PolicyHandler.java
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverCommentRegistered_CoimmentRequest(@Payload CommentRegistered commentRegistered){
+
+        if(!commentRegistered.validate()) return;
+
+        System.out.println("\n\n##### listener CoimmentRequest : " + commentRegistered.toJson() + "\n\n");
+
+        Customer customer = new Customer();
+
+        customer.setId(commentRegistered.getId());
+        customer.setCustomerId(commentRegistered.getCustomerId());
+        customer.setProductId(commentRegistered.getProductId());
+        customer.setProductName(commentRegistered.getProductName());
+        customer.setPoint(commentRegistered.getPoint());
+        customer.setCommentMessage(commentRegistered.getCommentMessage());
+
+        customerRepository.save(customer);            
+
+        System.out.println("\n\n##### customer Comment 등록 완료 : ");
+    }
+```
+
+후기 등록은 고객 관리 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 고객 관리 서비스가 유지보수로 인해 잠시 내려간 상태라도 후기 정보 등록을 받는데 문제가 없다.
+
+
 ## CQRS
 
 가입신청 상태 조회를 위한 서비스를 CQRS 패턴으로 구현하였다.
