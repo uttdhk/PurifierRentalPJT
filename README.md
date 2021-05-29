@@ -6,7 +6,7 @@
 
 # Table of contents
 
-- [pirifierRentalProject (정수기 렌탈 신청 서비스)](#---)
+- [purifierRentalProject (정수기 렌탈 신청 서비스)](#---)
   - [서비스 시나리오](#서비스-시나리오)
   - [체크포인트](#체크포인트)
   - [분석/설계](#분석설계)
@@ -277,7 +277,7 @@
 
 
 ## 폴리글랏 퍼시스턴스
-- order, Assignment, installation, Customer 서비스 모두 H2 메모리DB를 적용하였다.  
+- Order, Assignment, Installation, Customer 서비스 모두 H2 메모리DB를 적용하였다.  
 다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
 ```
