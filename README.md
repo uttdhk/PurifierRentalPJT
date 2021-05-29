@@ -36,10 +36,11 @@
 1. 고객이 가입 신청을 취소할 수 있다.
 1. 가입신청이 취소되면 설치 취소된다.(설치취소 처리는 Req/Res 테스트를 위해 임의로 동기처리)
 1. 고객은 설치진행상태를 수시로 확인할 수 있다.
+1. 고객이 주문 건에 대한 후기를 등록하면, 고객담당팀은 후기 정보를 받을 수 있다.
 
 비기능적 요구사항
 1. 트랜잭션
-    1. 가입취소 신청은 설치취소가 동시 이루어 지도록 한다
+    1. 가입취소 신청은 설치취소가 동시 이루어 지도록 한다.
 1. 장애격리
     1. 정수기 렌탈 가입신청과 취소는 고객서비스 담당자의 접수, 설치 처리와 관계없이 항상 처리 가능하다.
 
@@ -178,10 +179,12 @@
 
 ![hexagonal2](https://user-images.githubusercontent.com/81946287/118780023-97845680-b8c6-11eb-89d3-01fabd32fbfa.png)
 
+## 신규 서비스 추가 (고객담당팀은 고객이 등록한 후기를 모아 서비스 품질 향상 및 마케팅을 위해 활용한다.)
+![msa](https://user-images.githubusercontent.com/81424367/120059540-39592f80-c08d-11eb-9da7-ff8eae7c0290.png)
 
 
 # 구현:
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8083 이다)
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
 
 ```
 - Local
@@ -194,13 +197,15 @@
 	cd Installation
 	mvn spring-boot:run
 
+	cd Customer
+	mvn spring-boot:run
 
 - EKS : CI/CD 통해 빌드/배포 ("운영 > CI-CD 설정" 부분 참조)
 ```
 
 ## DDD 의 적용
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: Order, Assignment, Installation
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: Order, Assignment, Installation, Customer
 - Assignment(배정) 마이크로서비스 예시
 
 ```
@@ -260,8 +265,8 @@
 적용 후 REST API의 테스트
 1) 정수기 렌탈 서비스 신청 & 설치완료 처리
 
-- (a) http -f POST localhost:8081/order/joinOrder productId=4 productName=PURI6 installationAddress="addr#6" customerId=506
-- (b) http -f PATCH http://localhost:8083/installations orderId=5 
+- (a) http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+- (b) http -f PATCH http://localhost:8083/installations orderId=1 
 ![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
 
 2) 카프카 메시지 확인
@@ -272,7 +277,7 @@
 
 
 ## 폴리글랏 퍼시스턴스
-- order, Assignment, installation 서비스 모두 H2 메모리DB를 적용하였다.  
+- order, Assignment, installation, Customer 서비스 모두 H2 메모리DB를 적용하였다.  
 다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
 ```
@@ -320,61 +325,6 @@ spring:
 	}
 ```
 
-
-
-
-재고 확인 및 수정 요청에 대한 동기 호출 처리
-
-
-```
-# (Order) ProductService.java
-@FeignClient(name="Product", url="http://product:8080")
-//@FeignClient(name="Product", url="http://localhost:8084")
-public interface ProductService {
-
-    @RequestMapping(method= RequestMethod.GET, path="/checkAndModifyStock")
-    public boolean checkAndModifyStock(@RequestParam("productId") Long productId,
-                                       @RequestParam("countStock") int countStock);
-
-}
-```
-
-```
-# (Product) ProductController.java
-@RequestMapping(value = "/checkAndModifyStock",
-        method = RequestMethod.GET,
-        produces = "application/json;charset=UTF-8")
-
-public boolean checkAndModifyStock(@RequestParam("productId") Long productId,
-                                @RequestParam("countStock") int countStock)
-        throws Exception {
-
-        System.out.println("##### 재고 수정 Command 요청 받음(동기호출) #####");
-
-        boolean status = false;
-        Optional<Product> productOptional = productRepository.findByProductId(productId);
-        Product product = productOptional.get();
-
-        // 현재 재고수량이 요청 수량보다 
-        //  많으면, 현재 재고수량을 요청 수량만큼 재고에서 감소
-        //  적으면, 재고 수량 변경 없음          
-        if (product.getStock() >= countStock) {
-                product.setStock(product.getStock() - countStock);
-                status = true;
-
-                System.out.println("##### 재고 수정 완료 #####");
-                productRepository.save(product);
-        }else{
-                System.out.println("##### 재고 부족으로 재고 수정 불가 #####");
-        }
-
-        return status;
-
-        }
-
- }
-```
-
 정수기 렌탈 서비스 가입 취소 요청(cancelRequest)을 받은 후, 처리하는 부분
 ```
 # (Installation) InstallationController.java
@@ -418,6 +368,7 @@ public boolean checkAndModifyStock(@RequestParam("productId") Long productId,
     @PostPersist
     public void onPostPersist(){
 
+        System.out.println("##### 주문 생성 Pub(orderRequest) #####");
         JoinOrdered joinOrdered = new JoinOrdered();
         BeanUtils.copyProperties(this, joinOrdered);
         joinOrdered.publishAfterCommit();
@@ -460,7 +411,7 @@ public class PolicyHandler{
 가입신청 상태 조회를 위한 서비스를 CQRS 패턴으로 구현하였다.
 - Order, Assignment, Installation 개별 aggregate 통합 조회로 인한 성능 저하를 막을 수 있다.
 - 모든 정보는 비동기 방식으로 발행된 이벤트를 수신하여 처리된다.
-- 설계 : MSAEz 설계의 view 매핑 설정 참조
+- 설계 : MSAEZ 설계의 view 매핑 설정 참조
 
 - 주문생성
 
@@ -491,22 +442,26 @@ API Gateway를 통하여, 마이크로 서비스들의 진입점을 통일한다
 # application.yml 파일에 라우팅 경로 설정
 
 spring:
-  profiles: default
+  profiles: docker
   cloud:
     gateway:
       routes:
-        - id: Order
-          uri: http://localhost:8081
+        - id: order
+          uri: http://order:8080
           predicates:
-            - Path=/orders/**,/order/**,/orderStatuses/**
-        - id: Assignment
-          uri: http://localhost:8082
+            - Path=/order/**,/orders/**,/orderStatuses/**
+        - id: assignment
+          uri: http://assignment:8080
           predicates:
-            - Path=/assignments/**,/assignment/** 
-        - id: Installation
-          uri: http://localhost:8083
+            - Path=/assignment/**,/assignments/** 
+        - id: installation
+          uri: http://installation:8080
           predicates:
-            - Path=/installations/**,/installation/** 
+            - Path=/installation/**,/installations/** 
+        - id: customer
+          uri: http://customer:8080
+          predicates:
+            - Path=/customers/** 
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -533,7 +488,7 @@ server:
 ### 빌드/배포
 각 프로젝트 jar를 Dockerfile을 통해 Docker Image 만들어 ECR저장소에 올린다.   
 EKS 클러스터에 접속한 뒤, 각 서비스의 deployment.yaml, service.yaml을 kuectl명령어로 서비스를 배포한다.   
-  - 코드 형상관리 : https://github.com/llyyjj99/PurifierRentalPJT 하위 repository에 각각 구성   
+  - 코드 형상관리 : https://github.com/uttdhk/PurifierRentalPJT 하위 repository에 각각 구성   
   - 운영 플랫폼 : AWS의 EKS(Elastic Kubernetes Service)   
   - Docker Image 저장소 : AWS의 ECR(Elastic Container Registry)
 ##### 배포 명령어
@@ -692,7 +647,7 @@ kubectl get hpa order -w
 
 - 사용자 50명으로 워크로드를 3분 동안 걸어준다.
 ```
-siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=5&productName=PURI5&installationAddress=Address5&customerId=205'
 
 
 ```
@@ -709,7 +664,7 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 
 - seige 로 배포작업 직전에 워크로드를 모니터링 한다.
 ```
-siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=4&productName=PURI4&installationAddress=Dongtan&customerId=504'
+siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=5&productName=PURI5&installationAddress=Address5&customerId=205'
 ```
 
 - readinessProbe, livenessProbe 설정되지 않은 상태로 buildspec.yml을 수정한다.
@@ -824,6 +779,7 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
 # 시연
  1. 정수기 렌탈 서비스 가입신청 -> installation 접수 완료 상태
  2. 설치 기사 설치 완료 처리 -> 가입 신청 완료 상태
+ 3. 후기 등록
  3. 가입 취소
  4. EDA 구현
    - Assignment 장애 상황에서 order(가입 신청) 정상 처리
