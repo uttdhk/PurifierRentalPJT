@@ -291,7 +291,7 @@ spring:
         driver-class-name: org.mariadb.jdbc.Driver
 ```
 
-## 동기식 호출 과 Fallback 처리
+## 동기식 호출과 Fallback 처리
 
 - 분석 단계에서의 조건 중 하나로 배정(Assignment) 서비스에서 인터넷 가입신청 취소를 요청 받으면, 
 설치(installation) 서비스 취소 처리하는 부분을 동기식 호출하는 트랜잭션으로 처리하기로 하였다. 
