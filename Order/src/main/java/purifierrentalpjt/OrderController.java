@@ -54,7 +54,8 @@ public class OrderController {
 		System.getenv().get("");
 		
 		
-		// http -f POST localhost:8080/order/joinOrder productId=1 productName=ggg installationAddress=분당 customerId=111 orderDate=20210412
+		// http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+
 		
 		// init
 		System.out.println("##### /order/joinOrder  called #####");
@@ -119,6 +120,50 @@ public class OrderController {
 		
 		return status;
 	}
+
+	
+	/**
+	 * 제품 후기를 등록한다.
+	 * @param productId
+	 * @param productName
+	 * @param customerId
+	 * @param point
+	 * @param commentMessage
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/order/registerComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	public boolean registerComment(
+		@RequestParam("id") 					Long 	id, 
+		@RequestParam("productId") 				Long 	productId, 
+		@RequestParam("productName")  			String 	productName,
+		@RequestParam("customerId")  			Long 	customerId,
+		@RequestParam("point")  				Integer 	point,
+		@RequestParam("commentMessage")  		String 	commentMessage
+					) throws Exception {
+			
+		
+		// http -f POST localhost:8081/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=8 commentMessage="물이 맜있네요"
+
+		// init
+		System.out.println("##### /order/registerComment  called #####");
+		boolean status = false;		
+		
+		// 주문검색후, 코멘트 입력
+		Optional<Order> orderOpt =orderRepository.findById(id);
+		if( orderOpt.isPresent()) {
+			Order order =orderOpt.get();
+			status = true;
+			order.setStatus("commentRequest");
+			order.setPoint(point);
+			order.setCommentMessage(commentMessage);
+			orderRepository.save(order);
+
+		} 		
+		
+		return status;
+	}
+	
 	
 	/**
 	 * 오늘날짜 구하기

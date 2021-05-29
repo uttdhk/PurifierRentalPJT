@@ -56,6 +56,20 @@ public class PolicyHandler{
             
     }
 
+    /**
+     * 코멘트 등록 후 코멘트 처리 완료됬을때 처리
+     * @param commentAccepted
+     */
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverCommentAccepted_NotifyCommentAccepted(@Payload CommentAccepted commentAccepted){
+
+        if(!commentAccepted.validate()) return;
+
+        System.out.println("\n\n##### listener NotifyCommentAccepted : ");
+
+        System.out.println("\n\n##### Comment 등록해주셔서 감사합니다.  : ");
+            
+    }
 
     @StreamListener(KafkaProcessor.INPUT)
     public void whatever(@Payload String eventString){}

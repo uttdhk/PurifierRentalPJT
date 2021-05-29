@@ -62,7 +62,7 @@ public class InstallationController {
     		System.out.println( "##vo : " + ToStringBuilder.reflectionToString(installationCompl) );
     		installationRepository.save(installationCompl);
     	} else {
-    		System.out.println("### 설치취소 - 못찾음");
+    		System.out.println("### 설치완료 - 못찾음");
     	}
         
 
