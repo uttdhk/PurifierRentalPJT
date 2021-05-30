@@ -269,14 +269,16 @@
 1) 정수기 렌탈 서비스 신청 & 설치완료 처리
 
 - (a) http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+![101  주문요청(01  POST)](https://user-images.githubusercontent.com/81424367/120089885-46335d00-c139-11eb-9557-6e470c44f4ed.png)
+
 - (b) http -f PATCH http://localhost:8083/installations orderId=1 
-![image](https://user-images.githubusercontent.com/76420081/118930671-00c8a000-b981-11eb-9af5-3619d4ceaedd.png)
+![104  설치완료(02  REST 호출 처리)](https://user-images.githubusercontent.com/81424367/120089930-b641e300-c139-11eb-9bf6-24196f2648dd.png)
 
 2) 카프카 메시지 확인
 
 - (a) 서비스 신청 후 : JoinOrdered -> EngineerAssigned -> InstallationAccepted
 - (b) 설치완료 처리 후 : InstallationCompleted
-![image](https://user-images.githubusercontent.com/76420081/118930569-df67b400-b980-11eb-8ad2-66e33a3a5993.png)
+![104  설치완료(05  kafka)](https://user-images.githubusercontent.com/81424367/120089933-b7731000-c139-11eb-8e4b-c5196d678fc6.png)
 
 - (개인과제)Customer(고객담당팀) 마이크로서비스 예시
 
