@@ -36,14 +36,14 @@
 1. 고객이 가입 신청을 취소할 수 있다.
 1. 가입신청이 취소되면 설치 취소된다.(설치취소 처리는 Req/Res 테스트를 위해 임의로 동기처리)
 1. 고객은 설치진행상태를 수시로 확인할 수 있다.
-1. 고객이 주문 건에 대한 후기를 등록하면, 고객담당팀은 후기 정보를 받을 수 있다.
+1. (개인과제)고객이 주문 건에 대한 후기를 등록하면, 고객담당팀은 후기 정보를 받을 수 있다.
 
 비기능적 요구사항
 1. 트랜잭션
     1. 가입취소 신청은 설치취소가 동시 이루어 지도록 한다.
 1. 장애격리
     1. 정수기 렌탈 가입신청과 취소는 고객서비스 담당자의 접수, 설치 처리와 관계없이 항상 처리 가능하다.
-    1. 후기 등록은 고객담당팀에서 후기 정보 수신 여부와 관련 없이 항상 처리 가능하다.
+    1. (개인과제)후기 등록은 고객담당팀에서 후기 정보 수신 여부와 관련 없이 항상 처리 가능하다.
 
 1. 성능
     1. 고객은 주문/설치 진행상태를 수시로 확인한다.(CQRS)
@@ -106,7 +106,6 @@
   - 무정지 운영 CI/CD (10)
     - Readiness Probe 의 설정과 Rolling update을 통하여 신규 버전이 완전히 서비스를 받을 수 있는 상태일때 신규버전의 서비스로 전환됨을 siege 등으로 증명 
     - Contract Test :  자동화된 경계 테스트를 통하여 구현 오류나 API 계약위반를 미리 차단 가능한가?
-    - 
 
 
 # 분석/설계
@@ -116,7 +115,7 @@
 ![as_is](https://user-images.githubusercontent.com/81946287/118763701-4323ab80-b8b3-11eb-9a23-15da2ea74528.png)
 
 ## TO-BE 조직 (Vertically-Aligned)
-![to_be](https://user-images.githubusercontent.com/81946287/118763808-6f3f2c80-b8b3-11eb-807c-75ddb2daaddd.png)
+![200  ToBe](https://user-images.githubusercontent.com/81424367/120090704-7b42ae00-c13f-11eb-9f69-affbe7f7bc10.png)
 
 
 ## Event Storming 결과
@@ -151,6 +150,7 @@
 
 ### 수정된 2차 모형
 ![2ndDesign](https://user-images.githubusercontent.com/81946287/118765229-bc240280-b8b5-11eb-8bf4-2015470e7987.png)
+![msa](https://user-images.githubusercontent.com/81424367/120059540-39592f80-c08d-11eb-9da7-ff8eae7c0290.png)
 
     - 시나리오 내용을 매끄럽게 반영하기 위해 '서비스관리센터'를 '배정' 으로 변경
     - 가입신청과 동시에 자동 배정되는 요구사항에 따라 Manager 액터가 불필요하여 제거
@@ -159,18 +159,20 @@
 
 ### 2차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 #### 시나리오 Coverage Check (1)
-![1stReview](https://user-images.githubusercontent.com/81946287/118766395-546eb700-b8b7-11eb-8330-a26f30c69072.png)
+![200  주문요청 및 설치완료](https://user-images.githubusercontent.com/81424367/120090709-7da50800-c13f-11eb-924f-a417090795c0.png)
 
 #### 시나리오 Coverage Check (2)
-![2ndReview](https://user-images.githubusercontent.com/81946287/118766439-62243c80-b8b7-11eb-825d-9fcc9635607c.png)
+![200  주문 취소 시나리오](https://user-images.githubusercontent.com/81424367/120090708-7d0c7180-c13f-11eb-947b-e30c97f8a76e.png)
+
+#### 시나리오 Coverage Check (3)
+![200  후기등록 시나리오](https://user-images.githubusercontent.com/81424367/120090712-7e3d9e80-c13f-11eb-91dc-fa0f5024c348.png)
 
 #### 비기능 요구사항 coverage
-![3rdReview](https://user-images.githubusercontent.com/81946287/118766471-6cded180-b8b7-11eb-9c00-dcaec093281c.png)
-
+![200  비기능적 요구사항](https://user-images.githubusercontent.com/81424367/120090705-7c73db00-c13f-11eb-8004-5f00c5621b43.png)
 
 
 ## 헥사고날 아키텍처 다이어그램 도출
-![hexagonal1](https://user-images.githubusercontent.com/81946287/118779966-88050d80-b8c6-11eb-88dc-74be433e6f17.png)
+![200  헥사고날 아키텍처](https://user-images.githubusercontent.com/81424367/120090710-7da50800-c13f-11eb-85b4-aa847d8a11b5.png)
 
 
 ## 신규 서비스 추가 시 기존 서비스에 영향이 없도록 열린 아키택처 설계
@@ -178,7 +180,7 @@
 - 신규 개발 조직 추가 시, 기존의 마이크로 서비스에 수정이 발생하지 않도록 Inbund 요청을 REST 가 아닌 Event를 Subscribe 하는 방식으로 구현하였다.
 - 기존 마이크로 서비스에 대하여 아키텍처, 데이터베이스 구조와 관계 없이 추가할 수 있다.
 
-![hexagonal2](https://user-images.githubusercontent.com/81946287/118780023-97845680-b8c6-11eb-89d3-01fabd32fbfa.png)
+![200  신규 서비스 추가 아키텍처](https://user-images.githubusercontent.com/81424367/120090707-7c73db00-c13f-11eb-966f-c4db2e6424e0.png)
 
 ## 신규 서비스 추가 (고객담당팀은 고객이 등록한 후기를 모아 서비스 품질 향상 및 마케팅을 위해 활용한다.)
 ![msa](https://user-images.githubusercontent.com/81424367/120059540-39592f80-c08d-11eb-9da7-ff8eae7c0290.png)
