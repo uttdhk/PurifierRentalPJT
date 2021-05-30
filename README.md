@@ -278,6 +278,64 @@
 - (b) 설치완료 처리 후 : InstallationCompleted
 ![image](https://user-images.githubusercontent.com/76420081/118930569-df67b400-b980-11eb-8ad2-66e33a3a5993.png)
 
+- (개인과제)Customer(고객담당팀) 마이크로서비스 예시
+
+```
+package purifierrentalpjt;
+
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+import java.util.List;
+import java.util.Date;
+
+@Entity
+@Table(name="Customer_table")
+public class Customer {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private Long productId;
+    private String productName;
+    private Long customerId;
+    private Integer point;
+    private String commentMessage;
+
+    @PostPersist
+    public void onPostPersist(){
+        
+        CommentAccepted commentAccepted = new CommentAccepted();
+        System.out.println("##### 코멘트 확인 Pub(commentAccepted) #####" + commentAccepted.toJson() + "\n\n"); 
+
+        commentAccepted.setId(this.getId());
+        commentAccepted.setOrderId(this.getId());
+        commentAccepted.setCustomerId(this.getCustomerId());
+
+        BeanUtils.copyProperties(this, commentAccepted);
+        commentAccepted.publishAfterCommit();
+
+    }
+```
+
+적용 후 REST API의 테스트
+1) 정수기 후기 등록
+
+- (a) http -f POST localhost:8081/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="Good Water"
+![103  후기등록(01  REST POST registerComment)](https://user-images.githubusercontent.com/81424367/120089947-cc4fa380-c139-11eb-8e0d-eebf72960f19.png)
+![103  후기등록(02  order_table update registerComment Controller)](https://user-images.githubusercontent.com/81424367/120089948-cce83a00-c139-11eb-8e2a-59801df4379a.png)
+![103  후기등록(03  order_commentRegistered pub)](https://user-images.githubusercontent.com/81424367/120089949-cd80d080-c139-11eb-9fd0-9bf5e8ebc364.png)
+![103  후기등록(04  customer_commentRequest sub)](https://user-images.githubusercontent.com/81424367/120089950-cd80d080-c139-11eb-9e6c-6457427458ec.png)
+![103  후기등록(05  customer_comment등록)](https://user-images.githubusercontent.com/81424367/120089951-ce196700-c139-11eb-9de4-cfacf607bf41.png)
+![103  후기등록(06  customer_commentAccepted pub)](https://user-images.githubusercontent.com/81424367/120089952-ce196700-c139-11eb-9bc8-79cb7eaacef1.png)
+![103  후기등록(07  order_notifyCommentAccepted  sub)](https://user-images.githubusercontent.com/81424367/120089953-ceb1fd80-c139-11eb-98d0-6e1b3c4e276a.png)
+![103  후기등록(08  order_table)](https://user-images.githubusercontent.com/81424367/120089955-ceb1fd80-c139-11eb-83fb-1d48f47dc281.png)
+
+2) 카프카 메시지 확인
+
+- (a) 후기 등록 : CommentRegistered(pub) -> CommentRequest(sub) -> CommentAcceped(pub) -> NotifyCommentAccept(sub)
+![103  후기등록(10  kafka)](https://user-images.githubusercontent.com/81424367/120089958-cf4a9400-c139-11eb-8952-ff37cb5c27a2.png)
+
+
 
 ## 폴리글랏 퍼시스턴스
 - Order, Assignment, Installation, Customer 서비스 모두 H2 메모리DB를 적용하였다.  
@@ -409,7 +467,7 @@ public class PolicyHandler{
 가입신청은 배정 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 배정 서비스가 유지보수로 인해 잠시 내려간 상태라도 가입신청을 받는데 문제가 없다.
 
 
-
+(개인과제)
 ```
 # (order) Order.java
 
@@ -435,7 +493,7 @@ public class PolicyHandler{
         }
     }
 ```
-- 고객 관리 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
+- 고객 담당팀에서는 후기 등록 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
 ```
 # (customer) PolicyHandler.java
     @StreamListener(KafkaProcessor.INPUT)
