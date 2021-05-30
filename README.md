@@ -150,14 +150,18 @@
 
 ### 수정된 2차 모형
 ![2ndDesign](https://user-images.githubusercontent.com/81946287/118765229-bc240280-b8b5-11eb-8bf4-2015470e7987.png)
-![msa](https://user-images.githubusercontent.com/81424367/120059540-39592f80-c08d-11eb-9da7-ff8eae7c0290.png)
 
     - 시나리오 내용을 매끄럽게 반영하기 위해 '서비스관리센터'를 '배정' 으로 변경
     - 가입신청과 동시에 자동 배정되는 요구사항에 따라 Manager 액터가 불필요하여 제거
     - 고객이 실시간 상태 확인을 위한 View 모델 배치
 
+### 수정된 3차 모형(개인 과제 customer추가)
+![msa](https://user-images.githubusercontent.com/81424367/120059540-39592f80-c08d-11eb-9da7-ff8eae7c0290.png)
 
-### 2차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
+    - 고객담당팀 마이크로서비스 추가
+    - 후기 등록 후 Customer 조직으로 비동기 호출 되도록 구성
+
+### 3차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 #### 시나리오 Coverage Check (1)
 ![200  주문요청 및 설치완료](https://user-images.githubusercontent.com/81424367/120090709-7da50800-c13f-11eb-924f-a417090795c0.png)
 
