@@ -528,25 +528,25 @@ public class PolicyHandler{
 - 모든 정보는 비동기 방식으로 발행된 이벤트를 수신하여 처리된다.
 - 설계 : MSAEZ 설계의 view 매핑 설정 참조
 
-- 주문생성
+- 주문요청
 
-![image](https://user-images.githubusercontent.com/76420081/119001165-b23df480-b9c6-11eb-9d62-bed7406f0709.png)
+![101  주문요청(01  POST)](https://user-images.githubusercontent.com/81424367/120089885-46335d00-c139-11eb-9557-6e470c44f4ed.png)
 
 - 카프카 메시지
 
-![image](https://user-images.githubusercontent.com/76420081/119001370-df8aa280-b9c6-11eb-867f-fbd78ab89031.png)
+![101  주문요청(10  Kafka)](https://user-images.githubusercontent.com/81424367/120089883-459ac680-c139-11eb-9c98-acd5302a3114.png)
 
 - 주문취소
 
-![image](https://user-images.githubusercontent.com/76420081/119001667-25476b00-b9c7-11eb-8609-c6a7e9a02dfe.png)
+![102  주문취소(01  POST)](https://user-images.githubusercontent.com/81424367/120089964-e1c4cd80-c139-11eb-950f-158cf3aa23b2.png)
 
 - 카프카 메시지
 
-![image](https://user-images.githubusercontent.com/76420081/119001720-32645a00-b9c7-11eb-81aa-58191e7bef1d.png)
+![102  주문취소(09  Kafka)](https://user-images.githubusercontent.com/81424367/120089973-e4272780-c139-11eb-8917-1014dc598b06.png)
 
 - 뷰테이블 수신처리
 
-![image](https://user-images.githubusercontent.com/76420081/119002598-fa114b80-b9c7-11eb-9aac-ed6ac136be4c.png)
+![101  주문요청(11  order-view)](https://user-images.githubusercontent.com/81424367/120089884-46335d00-c139-11eb-99f6-c32d23a4c871.png)
 
 
 ## API Gateway
@@ -591,6 +591,18 @@ spring:
 server:
   port: 8080
 ```
+## Gateway로 접속
+1. Gateway 01. 주문요청
+![105  Gateway 01  주문요청](https://user-images.githubusercontent.com/81424367/120091238-3ec58100-c144-11eb-9078-1368668563d0.png)
+
+1. Gateway 02. 설치완료
+![105  Gateway 02  설치완료](https://user-images.githubusercontent.com/81424367/120091239-3f5e1780-c144-11eb-98c1-af885f49d115.png)
+
+1. Gateway 03. 후기 등록
+![105  Gateway 03  후기 등록](https://user-images.githubusercontent.com/81424367/120091240-3ff6ae00-c144-11eb-9b37-173214f753de.png)
+1. Gateway 04.  설치 취소
+![105  Gateway 04  설치 취소](https://user-images.githubusercontent.com/81424367/120091241-3ff6ae00-c144-11eb-9cd0-2fb2abf61abd.png)
+
 
 - EKS에 배포 시, MSA는 Service type을 ClusterIP(default)로 설정하여, 클러스터 내부에서만 호출 가능하도록 한다.
 - API Gateway는 Service type을 LoadBalancer로 설정하여 외부 호출에 대한 라우팅을 처리한다.
