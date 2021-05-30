@@ -528,6 +528,11 @@ public class PolicyHandler{
 
 후기 등록은 고객 관리 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 고객 관리 서비스가 유지보수로 인해 잠시 내려간 상태라도 후기 정보 등록을 받는데 문제가 없다.
 
+후기 등록에 대한 비동기 호출(Kafka Order)
+![103  후기등록(03  order_commentRegistered pub)](https://user-images.githubusercontent.com/81424367/120089949-cd80d080-c139-11eb-9fd0-9bf5e8ebc364.png)
+
+후기 등록에 대한 비동기 호출 처리(Kafka Customer)
+![103  후기등록(04  customer_commentRequest sub)](https://user-images.githubusercontent.com/81424367/120089950-cd80d080-c139-11eb-9e6c-6457427458ec.png)
 
 ## CQRS
 
