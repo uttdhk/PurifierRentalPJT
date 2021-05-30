@@ -43,6 +43,7 @@
     1. 가입취소 신청은 설치취소가 동시 이루어 지도록 한다.
 1. 장애격리
     1. 정수기 렌탈 가입신청과 취소는 고객서비스 담당자의 접수, 설치 처리와 관계없이 항상 처리 가능하다.
+    1. 후기 등록은 고객담당팀에서 후기 정보 수신 여부와 관련 없이 항상 처리 가능하다.
 
 1. 성능
     1. 고객은 주문/설치 진행상태를 수시로 확인한다.(CQRS)
@@ -120,7 +121,7 @@
 
 ## Event Storming 결과
 * MSAEZ 로 모델링한 이벤트스토밍 결과:  
-  - http://www.msaez.io/#/storming/IkrhsmX1DtOtbLQM9ri9QJ9uoRm2/every/ee3188d76ffc9344628b8a9183bcc9b1
+  - http://www.msaez.io/#/storming/WkOgp05NDFSWcJJQPBwSchRA0Kj1/mine/7d3e4aaa05043621312558cb132e0a41
 
 ### 이벤트 도출
 ![Event](https://user-images.githubusercontent.com/81946287/118763908-9d247100-b8b3-11eb-992f-f930e774b284.png)
