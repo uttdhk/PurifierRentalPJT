@@ -420,6 +420,12 @@ spring:
     	}
 ```
 
+주문 취소에 대한 동기 호출 요청(Assignment)
+![102  주문취소(05  assignment-orderCancelAccepted pub 그리고 cancelInstallation 동기호출)](https://user-images.githubusercontent.com/81424367/120089969-e2f5fa80-c139-11eb-8088-40fb62562ef8.png)
+
+주문 취소에 대한 동기 호출 처리(Installation)
+![102  주문취소(07  installation-동기호출 처리)](https://user-images.githubusercontent.com/81424367/120089971-e38e9100-c139-11eb-82d5-e30958103b9c.png)
+
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
 가입 신청(order)이 이루어진 후에 배정(Assignment) 서비스로 이를 알려주는 행위는 비동기식으로 처리하여, 배정(Assignment) 서비스의 처리를 위하여 가입신청(order)이 블로킹 되지 않도록 처리한다.
