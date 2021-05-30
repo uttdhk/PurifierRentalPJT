@@ -27,11 +27,9 @@ public class Assignment {
 
     @PostUpdate
     public void onPostUpdate(){
+      
 
-        
-        System.out.println("##### 주문 취소에 onPostUpdate #####" + this.getStatus());
-
-       // if (this.getStatus().equals("cancelRequest")) {
+        if (this.getStatus().equals("cancelRequest")) {
 
             System.out.println("##### 주문 취소에 대한 승인 kafka 발행 #####");
             OrderCancelAccepted orderCancelAccepted = new OrderCancelAccepted();
@@ -53,7 +51,7 @@ public class Assignment {
             AssignmentApplication.applicationContext.getBean(purifierrentalpjt.external.InstallationService.class)
             .cancelInstallation(installation);
 
-      //  }
+        }
     }
 
     @PostPersist

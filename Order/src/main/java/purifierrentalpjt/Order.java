@@ -56,20 +56,6 @@ public class Order {
         joinOrdered.publishAfterCommit();
 
 
-        ////////////////////////////////////////
-        /*
-        System.out.println("##### 재고 확인 동기 호출 시작 #####");
-        purifierrentalpjt.external.Product product = new purifierrentalpjt.external.Product();
-
-        product.setProductId(this.getProductId());
-       
-
-        OrderApplication.applicationContext.getBean(purifierrentalpjt.external.ProductService.class)
-        .checkAndModifyStock(product.getProductId(), 5);
-        */
-
-
-
     }
 
     
