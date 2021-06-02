@@ -348,7 +348,7 @@ public class Customer {
 - Order, Assignment, Installation 서비스 모두 H2 메모리DB를 적용하였다.
 - 신규 Customer 서비스는 MongoDB를 적용하였다.
 - 다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 
-  -- 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
+  기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
 Customer 서비스의 pom.xml에 MongoDB Dependency 설정
 ```
