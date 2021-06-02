@@ -24,6 +24,8 @@
     - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출--서킷-브레이킹--장애격리)
     - [오토스케일 아웃](#오토스케일-아웃)
     - [무정지 재배포](#무정지-재배포)
+    - [ConfigMap 적용](#ConfigMap-적용)
+    - [Secret 적용](#Secret-적용)
   - [신규 개발 조직의 추가](#신규-개발-조직의-추가)
 
 # 서비스 시나리오
@@ -883,7 +885,31 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 ## ConfigMap 적용
 
 - 설정의 외부 주입을 통한 유연성을 제공하기 위해 ConfigMap을 적용한다.
+
+- 환경변수를 주입한다.
+```
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order
+data:
+  my.language: korean
+EOF
+```
+
+- deployment에 configmap 주입 정보를 추가한다.
+```
+          env:
+          - name: INIT_LANGUAGE
+            valueFrom:
+              configMapKeyRef:
+                name: order
+                key: my.language
+```
+
 - orderstatus 에서 사용하는 mySQL(AWS RDS 활용) 접속 정보를 ConfigMap을 통해 주입 받는다.
+
 
 ```
 cat <<EOF | kubectl apply -f -
@@ -915,6 +941,57 @@ data:
 EOF
 ```
 
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  labels:
+    app: order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-order:v5
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: '/actuator/health'
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+          env:
+          - name: INIT_NAME
+            valueFrom:
+              secretKeyRef:
+                name: order
+                key: username
+          - name: INIT_PW
+            valueFrom:
+              secretKeyRef:
+                name: order
+                key: password
+
+```
 
 ## 운영 모니터링
 
