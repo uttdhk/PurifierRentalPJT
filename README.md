@@ -14,6 +14,7 @@
     - [DDD 의 적용](#ddd-의-적용)
     - [폴리글랏 퍼시스턴스](#폴리글랏-퍼시스턴스)
     - [폴리글랏 프로그래밍](#폴리글랏-프로그래밍)
+    - [Saga 패턴 적용](Saga-패턴-적용)
     - [동기식 호출과 Fallback 처리](#동기식-호출과-Fallback-처리)
     - [비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트](#비동기식-호출--시간적-디커플링--장애격리--최종-Eventual-일관성-테스트)
   - [운영](#운영)
@@ -353,6 +354,67 @@ spring:
         password: db계정 비밀번호
         driver-class-name: org.mariadb.jdbc.Driver
 ```
+
+
+## Saga 패턴 적용
+
+- SAGA 패턴은 각 서비스의 트랜잭션은 단일 서비스 내의 데이터를 갱신하는 일종의 로컬 트랜잭션 방법이고 서비스의 트랜잭션이 완료 후에 다음 서비스가 트리거 되어, 트랜잭션을 실행하는 방법입니다.
+
+- 현재 정수기렌탈 시스템에도 Saga 패턴에 맞추어서 작성되어 있다.
+
+```
+OrderController.java (후기 등록 처리)
+
+	@RequestMapping(value = "/order/registerComment", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	public boolean registerComment(
+		@RequestParam("id") 					Long 	id, 
+		@RequestParam("productId") 				Long 	productId, 
+		@RequestParam("productName")  			String 	productName,
+		@RequestParam("customerId")  			Long 	customerId,
+		@RequestParam("point")  				Integer 	point,
+		@RequestParam("commentMessage")  		String 	commentMessage
+					) throws Exception {
+
+		// init
+		System.out.println("##### /order/registerComment  called #####");
+		boolean status = false;		
+		
+		// 주문검색후, 코멘트 입력
+		Optional<Order> orderOpt = orderRepository.findById(id);
+		if( orderOpt.isPresent()) {
+			Order order =orderOpt.get();
+			status = true;
+			order.setStatus("commentRequest");
+			order.setPoint(point);
+			order.setCommentMessage(commentMessage);
+			orderRepository.save(order);
+
+		} 		
+		
+		return status;
+	}
+```
+
+- 주문 검색하여 해당 주문이 있는 경우에만, 후기 정보를 기록하고, CommentRegistered를 통해 Publish하여 Customer 마이크로서비스에서 Subscribe할 수 있도록 한다.
+
+- 해당 주문이 없는 경우에는 후기 정보도 기록하지 않고, pub/sub도 하지 않는다..
+
+201번 고객의 정수기 주문(Order Id=1)
+![201  Saga(01  주문요청)](https://user-images.githubusercontent.com/81424367/120413826-f4d2da00-c393-11eb-8c1a-128a86bdb88b.png)
+
+201번 고객의 정수기 후기 등록(Order Id=1)
+![201  Saga(02  Comment등록)](https://user-images.githubusercontent.com/81424367/120413831-f6040700-c393-11eb-9f44-427b7cd7d47d.png)
+
+201번 고객의 정수기 후기 정상 반영
+![201  Saga(03  Comment등록확인)](https://user-images.githubusercontent.com/81424367/120413832-f69c9d80-c393-11eb-9546-8634af7a02c1.png)
+
+고객의 정수기 주문 없는 상태(Order Id=3)
+Saga(04  3번 주문없음) HTTP GET
+![201  Saga(04  3번 주문없음)](https://user-images.githubusercontent.com/81424367/120413833-f69c9d80-c393-11eb-87aa-01bbc2c3f470.png)
+
+고객의 정수기 후기 등록 요청 실패(Order Id=3)
+![201  Saga(05  Comment등록불가)](https://user-images.githubusercontent.com/81424367/120413835-f7353400-c393-11eb-9658-74e0e7b728fc.png)
+
 
 ## 동기식 호출과 Fallback 처리
 
