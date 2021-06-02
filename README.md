@@ -4,6 +4,8 @@
 
 정수기 렌탈 신청 서비스 프로젝트 입니다.
 
+- 체크포인트 : https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
+
 # Table of contents
 
 - [PurifierRentalProject (정수기 렌탈 신청 서비스)](#---)
