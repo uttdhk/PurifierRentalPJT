@@ -345,20 +345,86 @@ public class Customer {
 
 
 ## 폴리글랏 퍼시스턴스
-- Order, Assignment, Installation, Customer 서비스 모두 H2 메모리DB를 적용하였다.  
-다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
+- Order, Assignment, Installation 서비스 모두 H2 메모리DB를 적용하였다.
+- 신규 Customer 서비스는 MongoDB를 적용하였다.
+- 다양한 데이터소스 유형 (RDB or NoSQL) 적용 시 데이터 객체에 @Entity 가 아닌 @Document로 마킹 후, 
+  -- 기존의 Entity Pattern / Repository Pattern 적용과 데이터베이스 제품의 설정 (application.yml) 만으로 가능하다.
 
+Customer 서비스의 pom.xml에 MongoDB Dependency 설정
 ```
---application.yml // mariaDB 추가 예시
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-mongodb</artifactId>
+</dependency>
+```
+
+application.yml에 MongoDB 설정
+```
 spring:
-  profiles: real-db
-  datasource:
-        url: jdbc:mariadb://rds주소:포트명(기본은 3306)/database명
-        username: db계정
-        password: db계정 비밀번호
-        driver-class-name: org.mariadb.jdbc.Driver
+  #MongoDB
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/tutorial
 ```
 
+Customer.java에 Entity 수정
+```
+//@Entity
+//@Table(name="Customer_table")
+@Document(collection = "Customer_table")
+public class Customer {
+
+    @Id
+    //@GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private Long productId;
+    private String productName;
+    private Long customerId;
+    private Integer point;
+    private String commentMessage;
+```
+
+Repository 수정
+```
+package purifierrentalpjt;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+@RepositoryRestResource(collectionResourceRel="customers", path="customers")
+//public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long>{
+public interface CustomerRepository extends MongoRepository<Customer, Long>{
+}
+```
+
+결과 확인하기
+
+- 주문 요청
+```
+E:\Cloud\src\PurifierRentalPJT_폴리글랏>http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+HTTP/1.1 200
+Content-Type: application/json;charset=UTF-8
+Date: Wed, 02 Jun 2021 10:49:45 GMT
+Transfer-Encoding: chunked
+
+true
+```
+
+- 후기 등록
+```
+E:\Cloud\src\PurifierRentalPJT_폴리글랏>http -f POST localhost:8081/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="Good Water"
+HTTP/1.1 200
+Content-Type: application/json;charset=UTF-8
+Date: Wed, 02 Jun 2021 10:50:24 GMT
+Transfer-Encoding: chunked
+
+true
+```
+
+- MongoDB 데이터 확인
+
+![400  MongoDB(03  테스트)](https://user-images.githubusercontent.com/81424367/120469596-81ee5100-c3dd-11eb-98d5-91052090ef7d.png)
 
 ## Saga 패턴 적용
 
