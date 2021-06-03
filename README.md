@@ -805,7 +805,7 @@ kubectl apply -f service.yaml;
 ```
 
 ##### 배포 결과
-![image](https://user-images.githubusercontent.com/76420081/119082405-fa95fa80-ba38-11eb-8ad5-c7cd5b4f736a.png)
+![503  02  customer deploy service](https://user-images.githubusercontent.com/81424367/120590520-9e3dcc80-c475-11eb-832a-ae0fad1d54d6.png)
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 
