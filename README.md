@@ -1114,6 +1114,15 @@ EOF
 - etcd에 암호화 되어 저장되어, ConfigMap 보다 안전하다.
 - value는 base64 인코딩 된 값으로 지정한다. (echo root | base64)
 
+### base64 암호화
+```
+root@labs--93793215:/home/project/operation# echo 'Administrator' | base64
+QWRtaW5pc3RyYXRvcgo=
+root@labs--93793215:/home/project/operation# echo 'pass123456' | base64
+cGFzczEyMzQ1Ngo=
+```
+
+### Secret 설정
 ```
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -1122,62 +1131,38 @@ metadata:
   name: order
 type: Opaque
 data:
-  username: xxxxx <- 보안 상, 임의의 값으로 표시함 
-  password: xxxxx <- 보안 상, 임의의 값으로 표시함
+  username: QWRtaW5pc3RyYXRvcgo=
+  password: cGFzczEyMzQ1Ngo=
 EOF
 ```
 
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: order
-  labels:
-    app: order
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: order
-  template:
-    metadata:
-      labels:
-        app: order
-    spec:
-      containers:
-        - name: order
-          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-order:v5
-          ports:
-            - containerPort: 8080
-          readinessProbe:
-            httpGet:
-              path: '/actuator/health'
-              port: 8080
-            initialDelaySeconds: 10
-            timeoutSeconds: 2
-            periodSeconds: 5
-            failureThreshold: 10
-          livenessProbe:
-            httpGet:
-              path: '/actuator/health'
-              port: 8080
-            initialDelaySeconds: 120
-            timeoutSeconds: 2
-            periodSeconds: 5
-            failureThreshold: 5
-          env:
-          - name: INIT_NAME
-            valueFrom:
-              secretKeyRef:
-                name: order
-                key: username
-          - name: INIT_PW
-            valueFrom:
-              secretKeyRef:
-                name: order
-                key: password
+### 가입 요청
 
+![515  01  Secret (HTTP POST ORDER)](https://user-images.githubusercontent.com/81424367/120637579-0a3a2800-c4aa-11eb-861d-c1d9b3217d74.png)
+
+### 가입 요청 시 ID/PW를 읽음
 ```
+	@RequestMapping(value = "/order/joinOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+	public boolean joinOrder(
+		@RequestParam("productId") 					Long 	productId, 
+		@RequestParam("productName")  					String 	productName,
+		@RequestParam( value="installationAddress", required = false)  	String 	installationAddress,
+		@RequestParam("customerId")  					Long 	customerId,
+		@RequestParam( value="orderDate", required = false)  		String 	orderDate
+					) throws Exception {
+		
+		
+		System.out.println( "### 로그인 사용자 아이디 = " +System.getenv().get("INIT_NAME"));
+		System.out.println( "### 로그인 사용자 비밀번호 = " +System.getenv().get("INIT_PW"));		
+```
+
+### order 로그 확인
+```
+kubectl logs pod/order-6d5b449987-nqbws -c order				# istio 사용으로 order container 옵션 설정을 해야함
+```
+
+![515  02  Secret (kubectl order 로그 확인](https://user-images.githubusercontent.com/81424367/120637583-0b6b5500-c4aa-11eb-95be-01ee44782b36.png)
+
 
 ## 운영 모니터링
 
