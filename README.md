@@ -1070,6 +1070,8 @@ siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-sout
 
 ## ConfigMap 적용
 
+- 미 수행함.
+
 - 설정의 외부 주입을 통한 유연성을 제공하기 위해 ConfigMap을 적용한다.
 
 - 환경변수를 주입한다.
@@ -1236,5 +1238,7 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
  5. EDA 구현
    - Assignment 장애 상황에서 order(가입 신청) 정상 처리
    - Assignment 정상 전환 시 수신 받지 못한 이벤트 처리
- 6. 무정지 재배포
- 7. 오토 스케일링
+ 6. 서킷 브레이킹
+ 7. Liveness
+ 8. AutoScaleout
+ 9. Secret 
