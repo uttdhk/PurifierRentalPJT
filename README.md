@@ -870,7 +870,9 @@ kubectl get all -n istio-system                                          # EXTER
 ![511  04  kiali  접속(graph)](https://user-images.githubusercontent.com/81424367/120602971-7acf4d80-c486-11eb-9a3b-4a040d68b183.png)
 
 
-- istio 에서 서킷브레이커 설정(DestinationRule)
+### 서킷브레이커 설정
+
+#### 서킷브레이커 설정(DestinationRule)
 ```
 cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
@@ -893,15 +895,34 @@ spec:
       baseEjectionTime: 30s         # 30 초 동안 circuit breaking 처리   
       maxEjectionPercent: 100       # 100% 로 차단
 EOF
-
 ```
 
+#### Seige 툴을 통한 서킷 브레이커 동작 확인
+```
+siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
+```
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작을 확인한다.
 - 동시사용자 100명
 - 60초 동안 실시
 - 결과 화면
-![image](https://user-images.githubusercontent.com/76420081/119089217-c32d4b00-ba44-11eb-8038-9c86b9c92897.png)
-![kiali](https://user-images.githubusercontent.com/81946287/119092566-8b74d200-ba49-11eb-8ce1-e38ebfcacd13.png)
+![512  02  seige 명령 결과](https://user-images.githubusercontent.com/81424367/120604473-0f867b00-c488-11eb-9575-6d0681075e84.png)
+![512  03  seige 명령 결과(kiali)](https://user-images.githubusercontent.com/81424367/120604477-101f1180-c488-11eb-9bb9-c3077f72ba06.png)
+
+### 서킷브레이커 해제
+
+#### 서킷브레이커 해제(DestinationRule)
+```
+kubectl delete dr --all
+```
+
+#### Seige 툴을 통한 서킷 브레이커 동작 확인
+```
+siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
+```
+- 결과 화면
+![512  04  destination rule 삭제 후 seige 명령 결과](https://user-images.githubusercontent.com/81424367/120604478-101f1180-c488-11eb-9978-4e2926e0bba3.png)
+![512  05  destination rule 삭제 후 seige 명령 결과(kiali)](https://user-images.githubusercontent.com/81424367/120604482-10b7a800-c488-11eb-941c-3c20479583fe.png)
+
 
 ### Liveness
 pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상태인 경우 pod를 재기동하도록 한다.   
