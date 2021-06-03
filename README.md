@@ -982,37 +982,75 @@ kubectl get pods -w                                        # pod의 상태 모�
 ![513  02  liveness테스트](https://user-images.githubusercontent.com/81424367/120605297-dc90b700-c488-11eb-95f0-da9df688bf23.png)
 
 - 일정 시간 후 화면
+
 ![513  03  liveness테스트2](https://user-images.githubusercontent.com/81424367/120605303-dd294d80-c488-11eb-9d57-79598232f69f.png)
 
 
 ### 오토스케일 아웃
 
-- 가입신청 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 1프로를 넘어서면 replica 를 10개까지 늘려준다.
+- 가입신청 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 
+- 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다.
 ```
 kubectl autoscale deploy order --min=1 --max=10 --cpu-percent=1
 ```
 
-- 오토스케일이 어떻게 되고 있는지 모니터링을 걸어준다.
+#### autoscale.yml
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  labels:
+    app: order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          resources:
+            limits: 
+              cpu: 500m
+            requests:
+              cpu: 200m
+          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2
+```
+
+#### 오토스케일이 어떻게 되고 있는지 모니터링을 걸어준다.
 ```
 kubectl get deploy order -w
 
 kubectl get hpa order -w
 ```
 
-- 사용자 50명으로 워크로드를 3분 동안 걸어준다.
+#### 사용자 50명으로 워크로드를 3분 동안 걸어준다.
 ```
-siege -c50 -t180S  -v 'http://a39e59e8f1e324d23b5546d96364dc45-974312121.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=5&productName=PURI5&installationAddress=Address5&customerId=205'
-
-
+siege -c50 -t180S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
 ```
 
-- 오토스케일 발생하지 않음(siege 실행 결과 오류 없이 수행됨 : Availability 100%)
-- 서비스에 복잡한 비즈니스 로직이 포함된 것이 아니어서, CPU 부하를 주지 못한 것으로 추정된다.
+- AutoScaleout이 발생하지 않음(siege 실행 결과 오류 없이 수행됨 : Availability 100%)
+- AutoScaleout 대상이 unknown이며, 확인해본 결과 메트릭스 서버를 설치해야한다.
 
-![image](https://user-images.githubusercontent.com/76420081/119087445-1ce04600-ba42-11eb-92c8-2f0e2d772562.png)
+![514  01  AutoScaleout](https://user-images.githubusercontent.com/81424367/120621957-5a5cbe80-c499-11eb-932a-e896c737d3a4.png)
 
+#### 메트릭스 서버 설치
+
+![514  02  메트릭스 설치](https://user-images.githubusercontent.com/81424367/120621965-5b8deb80-c499-11eb-8c5c-3ee3175f72d5.png)
+
+#### AutoScaleout을 확인
+
+![514  03  autoscalout 확인](https://user-images.githubusercontent.com/81424367/120621967-5c268200-c499-11eb-8303-6f320937604b.png)
+![514  05  쿠버네티스 상태 확인](https://user-images.githubusercontent.com/81424367/120625903-153a8b80-c49d-11eb-90fd-57a8fc4e0dae.png)
 
 ## 무정지 재배포
+
+- 미 수행함.
 
 * 먼저 무정지 재배포가 100% 되는 것인지 확인하기 위해서 Autoscaler 이나 서킷브레이커 설정을 제거함
 
