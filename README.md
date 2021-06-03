@@ -759,14 +759,49 @@ server:
 ## CI/CD 설정
 ### 빌드/배포
 각 프로젝트 jar를 Dockerfile을 통해 Docker Image 만들어 ECR저장소에 올린다.   
-EKS 클러스터에 접속한 뒤, 각 서비스의 deployment.yaml, service.yaml을 kuectl명령어로 서비스를 배포한다.   
+EKS 클러스터에 접속한 뒤, 각 서비스의 deployment.yml, service.yml을 kuectl명령어로 서비스를 배포한다.   
   - 코드 형상관리 : https://github.com/uttdhk/PurifierRentalPJT 하위 repository에 각각 구성   
   - 운영 플랫폼 : AWS의 EKS(Elastic Kubernetes Service)   
   - Docker Image 저장소 : AWS의 ECR(Elastic Container Registry)
-##### 배포 명령어
+
+#### docker build
 ```
-$ kubectl apply -f deployment.yml
-$ kubectl apply -f service.yaml
+cd /home/project/PurifierRentalPJT/Order;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2 .;
+cd /home/project/PurifierRentalPJT/Installation;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-installation:v2 .;
+cd /home/project/PurifierRentalPJT/Assignment;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment:v2 .;
+cd /home/project/PurifierRentalPJT/Customer;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2 .;
+cd /home/project/PurifierRentalPJT/gateway;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1 .;
+```
+
+#### docker push
+```
+cd /home/project/PurifierRentalPJT/Order;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2;
+cd /home/project/PurifierRentalPJT/Installation;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-installation:v2;
+cd /home/project/PurifierRentalPJT/Assignment;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment:v2;
+cd /home/project/PurifierRentalPJT/Customer;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2;
+cd /home/project/PurifierRentalPJT/gateway;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1;
+```
+
+#### kubectrl deploy, service
+```
+kubectl create deploy gateway --image=879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1
+kubectl expose deployment gateway --type=LoadBalancer --port=8080
+
+cd /home/project/PurifierRentalPJT/Order/kubernetes/;
+kubectl apply -f deployment.yml;
+kubectl apply -f service.yaml;
+
+cd /home/project/PurifierRentalPJT/Installation/kubernetes/;
+kubectl apply -f deployment.yml;
+kubectl apply -f service.yaml;
+
+cd /home/project/PurifierRentalPJT/Assignment/kubernetes/;
+kubectl apply -f deployment.yml;
+kubectl apply -f service.yaml;
+
+cd /home/project/PurifierRentalPJT/Customer/kubernetes/;
+kubectl apply -f deployment.yml;
+kubectl apply -f service.yaml;
 ```
 
 ##### 배포 결과
