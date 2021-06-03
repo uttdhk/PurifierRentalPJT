@@ -925,6 +925,7 @@ siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-sout
 
 
 ### Liveness
+
 pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상태인 경우 pod를 재기동하도록 한다.   
 
 아래의 값으로 liveness를 설정한다.
@@ -932,32 +933,56 @@ pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상�
 - 기동 대기 시간 : 3초
 - 재기동 횟수 : 5번까지 재시도
 
-이때, 재기동 제어값인 /tmp/healthy파일을 강제로 지워 liveness가 pod를 비정상 상태라고 판단하도록 하였다.    
-5번 재시도 후에도 파드가 뜨지 않았을 경우 CrashLoopBackOff 상태가 됨을 확인하였다.   
-##### order에 Liveness 적용한 내용
-```yaml
+##### order 서비스에 Liveness 적용
+```
 apiVersion: apps/v1
 kind: Deployment
-...
+metadata:
+  name: order
+  labels:
+    app: order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
     spec:
       containers:
         - name: order
-          image: 740569282574.dkr.ecr.ap-southeast-2.amazonaws.com/puri-order:v3
+          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2
           args:
           - /bin/sh
           - -c
           - touch /tmp/healthy; sleep 10; rm -rf /tmp/healthy; sleep 600;
-...
+          ports:
+            - containerPort: 8080
           livenessProbe:
-            httpGet:
-              path: '/actuator/health'
-              port: 8080
+            exec:
+              command:
+              - cat
+              - /tmp/healthy
             initialDelaySeconds: 3
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
 ```
 
+#### liveness 적용 후 결과 화면
+```
+kubectl get pods -w                                        # pod의 상태 모니터링
+```
+
+- Order Pod의 CrashLoopBackOff 상태 확인
+- 이때, 재기동 제어값인 /tmp/healthy파일을 강제로 지워 liveness가 pod를 비정상 상태라고 판단하도록 하였다.    
+- 5번 재시도 후에도 파드가 뜨지 않았을 경우 CrashLoopBackOff 상태가 됨을 확인하였다.
+![513  02  liveness테스트](https://user-images.githubusercontent.com/81424367/120605297-dc90b700-c488-11eb-95f0-da9df688bf23.png)
+
+- 일정 시간 후 화면
+![513  03  liveness테스트2](https://user-images.githubusercontent.com/81424367/120605303-dd294d80-c488-11eb-9d57-79598232f69f.png)
 
 
 ### 오토스케일 아웃
