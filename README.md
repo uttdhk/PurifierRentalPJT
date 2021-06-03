@@ -813,60 +813,61 @@ kubectl apply -f service.yaml;
   - Spring FeignClient + Hystrix 옵션을 사용하여 구현할 경우, 도메인 로직과 부가 기능 로직이 서비스에 같이 구현된다.
   - istio를 사용해서 서킷 브레이킹 적용이 가능하다.
 
-- istio 설치
+### istio 설치
+```
+cd /home/project
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -        # istio 설치파일 download
+cd istio-1.7.1
+export PATH=$PWD/bin:$PATH                                                                  # istio PATH 추가
+istioctl install --set profile=demo --set hub=gcr.io/istio-release                          # istio 설치
+kubectl label namespace default istio-injection=enabled                                     # istio를 kubectl에 injection
+kubectl get all -n istio-system                                                             # istio injection 상태 확인
 
+마이크로서비스 재배포
 
-![image](https://user-images.githubusercontent.com/76420081/119083009-2665b000-ba3a-11eb-8a43-aeb9b7e7db98.png)
+kubectl get all                                                                             # 쿠버네티스 pod 상태 확인
 
-![image](https://user-images.githubusercontent.com/76420081/119083153-6331a700-ba3a-11eb-9543-475bb812c176.png)
+```
 
-![image](https://user-images.githubusercontent.com/76420081/119083538-1b5f4f80-ba3b-11eb-952d-89e7d7adec23.png)
-http://acdf28d4a2a744330ad8f7db4e05aeac-1896393867.ap-southeast-2.elb.amazonaws.com:20001/
+#### istio 설치 파일 다운로드
+![510  01  istio 설치](https://user-images.githubusercontent.com/81424367/120595003-b6651a00-c47c-11eb-9cac-67095c0d71d7.png)
 
-![image](https://user-images.githubusercontent.com/76420081/119086647-c292b580-ba40-11eb-9450-7b47e4128157.png)
+#### istio 설치 확인(istio namespace service 확인)
+![510  02  istio 설치 확인](https://user-images.githubusercontent.com/81424367/120595004-b7964700-c47c-11eb-9f8e-af052478fdc1.png)
 
+#### 마이크로서비스 재배포 후(Pod의 READY가 1/1에서 2/2로 변경됨)
+![510  03  서비스 재배포 후 서비스 확인 ready가 2개씩](https://user-images.githubusercontent.com/81424367/120595005-b7964700-c47c-11eb-919a-ec34fd925cea.png)
 
- root@labs--2007877942:/home/project# curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   102  100   102    0     0    153      0 --:--:-- --:--:-- --:--:--   152
-100  4573  100  4573    0     0   4880      0 --:--:-- --:--:-- --:--:--  4880
+### kiali 설치
 
-Downloading istio-1.7.1 from https://github.com/istio/istio/releases/download/1.7.1/istio-1.7.1-linux-amd64.tar.gz ...
+#### kiali.yaml 수정
+```
+vi istio-1.7.1/istiosamples/addons/kiali.yaml
+	4라인의 apiVersion: 
+		apiextensions.k8s.io/v1beta1을 apiVersion: apiextensions.k8s.io/v1으로 수정
+```
 
-Istio 1.7.1 Download Complete!
+#### kiali 서비스 설정
+```
+kubectl apply -f samples/addons
+	kiali.yaml 오류발생시, 아래 명령어 실행
+		kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.7/samples/addons/kiali.yaml
+```
 
-Istio has been successfully downloaded into the istio-1.7.1 folder on your system.
+![511  01  kiali 설치](https://user-images.githubusercontent.com/81424367/120602961-79058a00-c486-11eb-831a-359645a7d09d.png)
 
-Next Steps:
-See https://istio.io/latest/docs/setup/install/ to add Istio to your Kubernetes cluster.
+#### kiali External IP 설정 및 IP 확인
+```
+kubectl edit svc kiali -n istio-system                                   # kiali External IP 설정
+	:%s/ClusterIP/LoadBalancer/g
+	:wq!
+kubectl get all -n istio-system                                          # EXTERNAL-IP 확인
+```
+![511  02  kiali  서비스 등록 후 external IP 설정완료  istio ip확인](https://user-images.githubusercontent.com/81424367/120602967-7a36b700-c486-11eb-8dbc-767f624fd3a8.png)
 
-To configure the istioctl client tool for your workstation,
-add the /home/project/istio-1.7.1/bin directory to your environment path variable with:
-         export PATH="$PATH:/home/project/istio-1.7.1/bin"
-
-Begin the Istio pre-installation check by running:
-         istioctl x precheck 
-
-Need more information? Visit https://istio.io/latest/docs/setup/install/ 
-root@labs--2007877942:/home/project# ㅣㅣ
-bash: ㅣㅣ: command not found
-root@labs--2007877942:/home/project# ll
-total 24
-drwxr-xr-x 4 root root  6144 May 21 04:37 ./
-drwxrwxr-x 1 root root    19 May  3 04:35 ../
--rwx------ 1 root root 11248 May 21 03:06 get_helm.sh*
-drwxr-x--- 6 root root  6144 Sep  9  2020 istio-1.7.1/
-drwxr-xr-x 4 root root  6144 May 21 02:37 team/
-root@labs--2007877942:/home/project# cd istio-1.7.1/
-root@labs--2007877942:/home/project/istio-1.7.1# export PATH=$PWD/bin:$PATH
-root@labs--2007877942:/home/project/istio-1.7.1# istioctl install --set profile=demo --set hub=gcr.io/istio-release
-
-✔ Istio core installed                                                                            
-✔ Istiod installed                                                                                
-✔ Ingress gateways installed                                                                                                                                                                                         
-✔ Egress gateways installed                                                                                                                                                                                          
-✔ Installation complete                                                                                                                 
+#### kiali 접속 확인(application/graph 화면)
+![511  03  kiali  접속(applications)](https://user-images.githubusercontent.com/81424367/120602969-7acf4d80-c486-11eb-92f2-7477755d855a.png)
+![511  04  kiali  접속(graph)](https://user-images.githubusercontent.com/81424367/120602971-7acf4d80-c486-11eb-9a3b-4a040d68b183.png)
 
 
 - istio 에서 서킷브레이커 설정(DestinationRule)
