@@ -878,9 +878,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
-  name: order
+  name: customer
 spec:
-  host: order
+  host: customer
   trafficPolicy:
     connectionPool:
       tcp:
@@ -899,14 +899,14 @@ EOF
 
 #### Seige 툴을 통한 서킷 브레이커 동작 확인
 ```
-siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
+siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
 ```
 * 부하테스터 siege 툴을 통한 서킷 브레이커 동작을 확인한다.
 - 동시사용자 100명
 - 60초 동안 실시
 - 결과 화면
-![512  02  seige 명령 결과](https://user-images.githubusercontent.com/81424367/120604473-0f867b00-c488-11eb-9575-6d0681075e84.png)
-![512  03  seige 명령 결과(kiali)](https://user-images.githubusercontent.com/81424367/120604477-101f1180-c488-11eb-9bb9-c3077f72ba06.png)
+![512  07  seige 결과(후기등록)](https://user-images.githubusercontent.com/81424367/120731964-8fabef80-c51f-11eb-8693-1bab991ab9b8.png)
+![512  06  seige 결과(kiali)](https://user-images.githubusercontent.com/81424367/120731960-8de22c00-c51f-11eb-82bf-0f363858b8a0.png)
 
 ### 서킷브레이커 해제
 
@@ -917,12 +917,11 @@ kubectl delete dr --all
 
 #### Seige 툴을 통한 서킷 브레이커 동작 확인
 ```
-siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
+siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
 ```
 - 결과 화면
-![512  04  destination rule 삭제 후 seige 명령 결과](https://user-images.githubusercontent.com/81424367/120604478-101f1180-c488-11eb-9978-4e2926e0bba3.png)
-![512  05  destination rule 삭제 후 seige 명령 결과(kiali)](https://user-images.githubusercontent.com/81424367/120604482-10b7a800-c488-11eb-941c-3c20479583fe.png)
-
+![512  08  destination rule 삭제 후 seige 명령 결과](https://user-images.githubusercontent.com/81424367/120731965-8fabef80-c51f-11eb-81f6-b34198bb947f.png)
+![512  09  destination rule 삭제 후 seige 명령 결과(kiali)](https://user-images.githubusercontent.com/81424367/120731967-90448600-c51f-11eb-90fa-d724c287f9e4.png)
 
 ### Liveness
 
