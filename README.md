@@ -1217,7 +1217,7 @@ EOF
 
 ### order 로그 확인
 ```
-kubectl logs pod/order-6d5b449987-nqbws -c order				# istio 사용으로 order container 옵션 설정을 해야함
+kubectl logs pod/customer-6d5b449987-nqbws -c customer				# istio 사용으로 customer container 옵션 설정을 해야함
 ```
 
 ![515  02  Secret (kubectl order 로그 확인](https://user-images.githubusercontent.com/81424367/120637583-0b6b5500-c4aa-11eb-95be-01ee44782b36.png)
