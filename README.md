@@ -617,7 +617,17 @@ public class PolicyHandler{
 후기 등록은 고객담당 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 고객담당 서비스가 유지보수로 인해 잠시 내려간 상태라도 후기등록을 받는데 문제가 없다.
 
 
-(개인과제)
+후기 등록에 대한 비동기 호출(Kafka Customer)
+
+![601  비동기 pub(customer)](https://user-images.githubusercontent.com/81424367/120754360-8898d780-c547-11eb-9c9e-40ffce3ce042.png)
+
+후기 등록에 대한 비동기 호출 처리(Kafka order)
+
+![601  비동기 sub(order)](https://user-images.githubusercontent.com/81424367/120754362-89316e00-c547-11eb-85bb-550a53d0a2d6.png)
+
+
+
+(비동기로 했던 기능)
 ```
 # (order) Order.java
 
@@ -1035,9 +1045,9 @@ kubectl get pods -w                                        # pod의 상태 모�
 ### 오토스케일 아웃
 
 - 가입신청 서비스에 대한 replica 를 동적으로 늘려주도록 HPA 를 설정한다. 
-- 설정은 CPU 사용량이 10프로를 넘어서면 replica 를 10개까지 늘려준다.
+- 설정은 CPU 사용량이 1프로를 넘어서면 replica 를 10개까지 늘려준다.
 ```
-kubectl autoscale deploy order --min=1 --max=10 --cpu-percent=1
+kubectl autoscale deploy customer --min=1 --max=10 --cpu-percent=1
 ```
 
 #### autoscale.yml
@@ -1071,14 +1081,14 @@ spec:
 
 #### 오토스케일이 어떻게 되고 있는지 모니터링을 걸어준다.
 ```
-kubectl get deploy order -w
+kubectl get deploy customer -w
 
-kubectl get hpa order -w
+kubectl get hpa customer -w
 ```
 
 #### 사용자 50명으로 워크로드를 3분 동안 걸어준다.
 ```
-siege -c50 -t180S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder POST productId=101&productName=PURI1&installationAddress=AWS_Address&customerId=301'
+siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
 ```
 
 - AutoScaleout이 발생하지 않음(siege 실행 결과 오류 없이 수행됨 : Availability 100%)
