@@ -1,0 +1,936 @@
+계정 : user13	
+비번 : SKCC!234	
+ID : 740569282574	
+관리콘솔 : https://gkn-ytjeong.signin.aws.amazon.com/console
+Region코드 : ap-southeast-2
+접두어 : puri
+클러스터 : user13-eks
+
+
+1. 구현
+
+1-1. gateway 없는 경우(Localtest시)
+  AssignmentService.java  --assignment/src/main/java/prurifierrentalpjt/external/AssignmentService.java
+  //@FeignClient(name="Installation", url="http://installation:8080")
+  @FeignClient(name="Installation", url="http://localhost:8083")
+  
+  //@FeignClient(name="Customer", url="http://customer:8080")
+  @FeignClient(name="Customer", url="http://localhost:8084")
+  public interface CustomerService {
+
+1-2. Kafka
+
+  kafka테스트(E:\kafka_2.13-2.8.0\kafka_2.13-2.8.0\bin\windows)
+  1. zookeeper(새창)
+  zookeeper-server-start.bat ../../config/zookeeper.properties
+  
+  2. kafka server(새창)
+  kafka-server-start.bat ../../config/server.properties
+  
+  3. topic 생성(새창)
+  kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 -topic purifierrentalpjt
+  Created topic purifierrentalpjt.
+  
+  4. topic 생성 확인
+  kafka-topics.bat --list --zookeeper localhost:2181
+  
+  5. 수신 확인
+  kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic purifierrentalpjt --from-beginning
+
+1-3. spring-boot run
+
+  cd E:\Cloud\src\PurifierRentalPJT\Order
+  mvn spring-boot:run
+  
+  cd E:\Cloud\src\PurifierRentalPJT\Assignment
+  mvn spring-boot:run
+  
+  cd E:\Cloud\src\PurifierRentalPJT\Installation
+  mvn spring-boot:run
+  
+  cd E:\Cloud\src\PurifierRentalPJT\Customer
+  mvn spring-boot:run
+
+1-4. 서비스 테스트
+
+  @주문
+    http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+    http -f POST localhost:8081/order/joinOrder productId=102 productName="PURI2" installationAddress="Address1002" customerId=202
+    http -f POST localhost:8081/order/joinOrder productId=103 productName="PURI3" installationAddress="Address1003" customerId=203
+    http -f POST localhost:8081/order/joinOrder productId=104 productName="PURI4" installationAddress="Address1004" customerId=204
+    http -f POST localhost:8081/order/joinOrder productId=105 productName="PURI5" installationAddress="Address1005" customerId=205
+    http -f POST localhost:8081/order/joinOrder productId=106 productName="PURI6" installationAddress="Address1006" customerId=206
+
+  @주문 취소
+    http -f POST localhost:8081/order/cancelOrder id=1
+  
+  @설치 완료
+    http -f PATCH http://localhost:8083/installations orderId=1
+  
+  @후기 등록
+    http -f POST localhost:8081/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="PURI1 is Very Good"
+
+  @후기 읽음(고객담당자)
+    http -f PATCH localhost:8084/customers Id=5
+
+  @gateway 이용시
+    http -f POST localhost:8088/order/joinOrder productId=101 productName="PURI1" installationAddress="Address1001" customerId=201
+    http -f PATCH http://localhost:8088/installations orderId=1
+    http -f POST localhost:8088/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="Good Water"
+    http -f POST localhost:8088/order/cancelOrder id=1
+
+1-5. Command 확인
+
+  @주문 요청
+  E:\>http -f POST localhost:8081/order/joinOrder productId=101 productName="PURI01" installationAddress="Address1001" customerId=201
+  HTTP/1.1 200
+  Content-Type: application/json;charset=UTF-8
+  Date: Tue, 25 May 2021 14:07:19 GMT
+  Transfer-Encoding: chunked
+  
+  true
+  
+  E:\>http -f GET localhost:8081/orders/1
+  HTTP/1.1 200
+  Content-Type: application/hal+json;charset=UTF-8
+  Date: Tue, 25 May 2021 14:08:39 GMT
+  Transfer-Encoding: chunked
+  
+  {
+      "_links": {
+          "order": {
+              "href": "http://localhost:8081/orders/1"
+          },
+          "self": {
+              "href": "http://localhost:8081/orders/1"
+          }
+      },
+      "customerId": 201,
+      "installationAddress": "Address1001",
+      "orderDate": "20210525",
+      "productId": 101,
+      "productName": "PURI01",
+      "status": "orderRequest"
+  }
+
+  @코멘트 등록
+  E:\>http -f POST localhost:8081/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=7 commentMessage="물이 맛있어요"
+  
+  
+  
+  E:\>http -f POST localhost:8081/order/joinOrder productId=102 productName="PURI2" installationAddress="Address1002" customerId=202
+  HTTP/1.1 200
+  Content-Type: application/json;charset=UTF-8
+  Date: Sat, 29 May 2021 05:23:30 GMT
+  Transfer-Encoding: chunked
+  
+  true
+
+
+  @카프카 확인
+
+  E:\kafka_2.13-2.8.0\kafka_2.13-2.8.0\bin\windows>kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic purifierrentalpjt --from-beginning
+  {"eventType":"JoinOrdered","id":1,"productId":101,"productName":"PURI01","installationAddress":"Address1001","customerId":201,"orderDate":"20210525","status":"orderRequest","me":true}
+  {"eventType":"EngineerAssigned","timestamp":"20210525230719","id":1,"orderId":1,"installationAddress":"Address1001","engineerId":1,"engineerName":"Enginner1"}
+  {"eventType":"InstallationAccepted","timestamp":"20210525230719","id":1,"engineerId":1,"engineerName":"Enginner1","installReservationDate":"20210525230719","installCompleteDate":null,"orderId":1,"status":"installationAccepted"}
+
+  @ table 확인
+
+  - assignments
+  E:\>http -f GET localhost:8082/assignments/1
+  HTTP/1.1 200
+  Content-Type: application/hal+json;charset=UTF-8
+  Date: Tue, 25 May 2021 14:11:56 GMT
+  Transfer-Encoding: chunked
+  
+  {
+      "_links": {
+          "assignment": {
+              "href": "http://localhost:8082/assignments/1"
+          },
+          "self": {
+              "href": "http://localhost:8082/assignments/1"
+          }
+      },
+      "engineerId": 1,
+      "engineerName": "Enginner1",
+      "installationAddress": "Address1001",
+      "orderId": 1,
+      "status": "orderRequest"
+  }
+  
+  
+  
+  - installations
+  E:\>http -f GET localhost:8083/installations/1
+  HTTP/1.1 200
+  Content-Type: application/hal+json;charset=UTF-8
+  Date: Tue, 25 May 2021 14:13:20 GMT
+  Transfer-Encoding: chunked
+  
+  {
+      "_links": {
+          "installation": {
+              "href": "http://localhost:8083/installations/1"
+          },
+          "self": {
+              "href": "http://localhost:8083/installations/1"
+          }
+      },
+      "engineerId": 1,
+      "engineerName": "Enginner1",
+      "installCompleteDate": null,
+      "installReservationDate": "20210525230719",
+      "orderId": 1,
+      "status": "installationAccepted"
+  }
+  
+  
+  @주문 취소
+  
+  E:\>http -f POST localhost:8081/order/cancelOrder id=1
+  HTTP/1.1 200
+  Content-Type: application/json;charset=UTF-8
+  Date: Tue, 25 May 2021 14:14:44 GMT
+  Transfer-Encoding: chunked
+  
+  true
+  
+  @kafka 확인
+  
+  E:\kafka_2.13-2.8.0\kafka_2.13-2.8.0\bin\windows>kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic purifierrentalpjt --from-beginning
+  {"eventType":"JoinOrdered","id":1,"productId":101,"productName":"PURI01","installationAddress":"Address1001","customerId":201,"orderDate":"20210525","status":"orderRequest","me":true}
+  {"eventType":"EngineerAssigned","timestamp":"20210525230719","id":1,"orderId":1,"installationAddress":"Address1001","engineerId":1,"engineerName":"Enginner1"}
+  {"eventType":"InstallationAccepted","timestamp":"20210525230719","id":1,"engineerId":1,"engineerName":"Enginner1","installReservationDate":"20210525230719","installCompleteDate":null,"orderId":1,"status":"installationAccepted"}
+  
+  {"eventType":"CancelOrdered","id":1,"status":"orderCancel","productId":101,"productName":"PURI01","installationAddress":"Address1001","customerId":201,"orderDate":"20210525","me":true}
+  {"eventType":"OrderCancelAccepted","timestamp":"20210525231444","id":1,"orderId":1,"status":"cancelRequest"}
+  {"eventType":"CancelOrdered","id":1,"status":"OrderCanceleAccepted","productId":101,"productName":"PURI01","installationAddress":"Address1001","customerId":201,"orderDate":"20210525","me":true}
+
+  
+  E:\kafka_2.13-2.8.0\kafka_2.13-2.8.0\bin\windows>kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 -topic purifierrentalpjt
+  Created topic purifierrentalpjt.
+  
+  E:\kafka_2.13-2.8.0\kafka_2.13-2.8.0\bin\windows>kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic purifierrentalpjt --from-beginning
+  {"eventType":"JoinOrdered","id":1,"productId":101,"productName":"PURI1","installationAddress":"Address1001","customerId":101,"orderDate":"20210525","status":"orderRequest","me":true}
+  {"eventType":"EngineerAssigned","timestamp":"20210525141756","id":1,"orderId":1,"installationAddress":"Address1001","engineerId":1,"engineerName":"Enginner1"}
+  {"eventType":"InstallationAccepted","timestamp":"20210525141756","id":1,"engineerId":1,"engineerName":"Enginner1","installReservationDate":"20210525141756","installCompleteDate":null,"orderId":1,"status":"installationAccepted"}
+  {"eventType":"JoinOrdered","id":2,"productId":102,"productName":"PURI2","installationAddress":"Address1=1002","customerId":102,"orderDate":"20210525","status":"orderRequest","me":true}
+  {"eventType":"EngineerAssigned","timestamp":"20210525141822","id":2,"orderId":2,"installationAddress":"Address1=1002","engineerId":2,"engineerName":"Enginner2"}
+  {"eventType":"InstallationAccepted","timestamp":"20210525141822","id":2,"engineerId":2,"engineerName":"Enginner2","installReservationDate":"20210525141822","installCompleteDate":null,"orderId":2,"status":"installationAccepted"}
+
+
+1-6. git
+	git fetch --all
+	git reset --hard origin/master   #주의
+	git pull origin master
+	git clone https://github.com/uttdhk/PurifierRentalPJT.git
+
+1-7. 열린 포트 확인 및 프로세스 종
+
+  netstat -ano | findstr "PID :808"
+  taskkill /pid 99999 /f
+
+  git commit -m "수정"
+  git status
+  git push
+
+
+2. 운영
+
+2-1. AWS 계정 정보
+
+  계정 : user13	
+  비번 : SKCC!234	
+  ID : 879772956301	
+  관리콘솔 : https://gkn-msaez1.signin.aws.amazon.com/console
+  Region코드 : ap-southeast-2
+  접두어 : user13
+  클러스터 : user13-eks
+
+2-2. IAM > 보안자격증명(WEB 올리기 금지)
+  aws 콘솔에서 IAM 검색 -> 왼편 사용자 클릭 -> 본인 계정 링크 클릭 (ex user##) -> 보안 자격 증명 클릭 
+  -> 액세스 키 만들기 클릭 -> 액세스 키 ID 복사하여 local 메모장에 복사 -> 비밀 엑세스 키 표시 후 복사 하여 local 메모장에 복사
+  
+  ABCDEFABCDEFABCDEFAB
+  ABCDEFABCDEFABCDEFABABCDEFABCDEFABCDEFAB
+
+2-3. 리포지토리 생성
+  user13-order : 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+  user13-assignment : 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+  user13-installation : 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+  user13-customer : 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+  user13-gateway : 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+  
+  879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment
+  879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway
+  879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-installation
+  879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order
+  879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer
+
+2-4. AWS 로그인
+  aws configure
+    ABCDEFABCDEFABCDEFAB
+    ABCDEFABCDEFABCDEFABABCDEFABCDEFABCDEFAB
+  	ap-southeast-2
+  	json
+
+2-5. AWS클러스터 생성
+  eksctl create cluster --name user13-eks --version 1.17 --nodegroup-name standard-workers --node-type t3.medium --nodes 4 --nodes-min 1 --nodes-max 4
+
+2-6. Region 설정
+  aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
+  kubectl config current-context
+  kubectl get all
+
+  @ 실행 command
+    root@labs--93793215:/home/project# aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
+    Added new context arn:aws:eks:ap-southeast-2:879772956301:cluster/user13-eks to /root/.kube/config
+    root@labs--93793215:/home/project# kubectl config current-context
+    arn:aws:eks:ap-southeast-2:879772956301:cluster/user13-eks
+    root@labs--93793215:/home/project# kubectl get all
+    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+    service/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   12m
+    root@labs--93793215:/home/project# 
+
+2-7. 마이크로서비스 mvn package(	각 마이크로서비스소스별로)
+  cd /home/project/PurifierRentalPJT/Order;mvn package -B;
+  cd /home/project/PurifierRentalPJT/Installation;mvn package -B;
+  cd /home/project/PurifierRentalPJT/Assignment;mvn package -B;
+  cd /home/project/PurifierRentalPJT/gateway;mvn package -B;
+  cd /home/project/PurifierRentalPJT/Customer;mvn package -B;
+
+  @실행 command
+    ============================================
+    root@labs--93793215:/home/project/PurifierRentalPJT/gateway# cd /home/project/PurifierRentalPJT/Customer;mvn package -B;
+    WARNING: An illegal reflective access operation has occurred
+    WARNING: Illegal reflective access by com.google.inject.internal.cglib.core.$ReflectUtils$1 (file:/usr/share/maven/lib/guice.jar) to method java.lang.ClassLoader.defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)
+    WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.core.$ReflectUtils$1
+    WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+    WARNING: All illegal access operations will be denied in a future release
+    [INFO] Scanning for projects...
+    [INFO] 
+    [INFO] ---------------------< purifierrentalpjt:Customer >---------------------
+    [INFO] Building Customer 0.0.1-SNAPSHOT
+    [INFO] --------------------------------[ jar ]---------------------------------
+    [INFO] 
+    [INFO] --- maven-resources-plugin:3.1.0:resources (default-resources) @ Customer ---
+    [INFO] Using 'UTF-8' encoding to copy filtered resources.
+    [INFO] Copying 1 resource
+    [INFO] Copying 0 resource
+    [INFO] 
+    [INFO] --- maven-compiler-plugin:3.8.1:compile (default-compile) @ Customer ---
+    [INFO] Nothing to compile - all classes are up to date
+    [INFO] 
+    [INFO] --- maven-resources-plugin:3.1.0:testResources (default-testResources) @ Customer ---
+    [INFO] Using 'UTF-8' encoding to copy filtered resources.
+    [INFO] skip non existing resourceDirectory /home/project/PurifierRentalPJT/Customer/src/test/resources
+    [INFO] 
+    [INFO] --- maven-compiler-plugin:3.8.1:testCompile (default-testCompile) @ Customer ---
+    [INFO] No sources to compile
+    [INFO] 
+    [INFO] --- maven-surefire-plugin:2.22.2:test (default-test) @ Customer ---
+    [INFO] 
+    [INFO] --- maven-jar-plugin:3.1.2:jar (default-jar) @ Customer ---
+    [INFO] Building jar: /home/project/PurifierRentalPJT/Customer/target/Customer-0.0.1-SNAPSHOT.jar
+    [INFO] 
+    [INFO] --- spring-boot-maven-plugin:2.1.9.RELEASE:repackage (repackage) @ Customer ---
+    [INFO] Replacing main artifact with repackaged archive
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    [INFO] Total time:  2.312 s
+    [INFO] Finished at: 2021-06-03T02:00:44Z
+    [INFO] ------------------------------------------------------------------------
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer# 
+    ============================================
+
+2-8. docker login
+  docker login --username AWS -p $(aws ecr get-login-password --region ap-southeast-2) 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+
+  @실행 Command  
+    ========================
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer# docker login --username AWS -p $(aws ecr get-login-password --region ap-southeast-2) 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+    Login Succeeded
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer# 
+
+2-9. docker build & push
+  
+  cd /home/project/PurifierRentalPJT/Order;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2 .;
+  cd /home/project/PurifierRentalPJT/Installation;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-installation:v2 .;
+  cd /home/project/PurifierRentalPJT/Assignment;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment:v2 .;
+  cd /home/project/PurifierRentalPJT/Customer;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2 .;
+  cd /home/project/PurifierRentalPJT/gateway;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1 .;
+  
+  cd /home/project/PurifierRentalPJT/Order;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2;
+  cd /home/project/PurifierRentalPJT/Installation;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-installation:v2;
+  cd /home/project/PurifierRentalPJT/Assignment;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment:v2;
+  cd /home/project/PurifierRentalPJT/Customer;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2;
+  cd /home/project/PurifierRentalPJT/gateway;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1;
+  
+  @실행Command(build)
+    root@labs--93793215:/home/project/PurifierRentalPJT/Assignment# cd /home/project/PurifierRentalPJT/Customer;docker build -t 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v1 .;
+    Sending build context to Docker daemon 59.79 MB
+    Step 1/4 : FROM openjdk:8u212-jdk-alpine
+     ---> a3562aa0b991
+    Step 2/4 : COPY target/*SNAPSHOT.jar app.jar
+     ---> a5f94bafeaf6
+    Step 3/4 : EXPOSE 8080
+     ---> Running in 6eb7deddf233
+    Removing intermediate container 6eb7deddf233
+     ---> 1e775d956f92
+    Step 4/4 : ENTRYPOINT ["java","-Xmx400M","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar","--spring.profiles.active=docker"]
+     ---> Running in db0e0e875c2c
+    Removing intermediate container db0e0e875c2c
+     ---> 21d1bdd5e0e6
+    Successfully built 21d1bdd5e0e6
+    Successfully tagged 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v1
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer# 
+
+  @실행Command(push)  
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer# cd /home/project/PurifierRentalPJT/gateway;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1;
+    The push refers to repository [879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway]
+    6993a710bef1: Pushed 
+    ceaf9e1ebef5: Pushed 
+    9b9b7f3d56a0: Pushed 
+    f1b5933fe4b5: Pushed 
+    v1: digest: sha256:6bd3c04405000dd1d8edc5b935eb68f263eecb7bd9a13ed926557ffbae35b518 size: 1159
+    root@labs--93793215:/home/project/PurifierRentalPJT/gateway# 
+
+2-10. 카프카설치
+	
+	@ Helm 3.x 설치(권장)
+	curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+	chmod 700 get_helm.sh
+	./get_helm.sh
+	설치 확인 command
+		helm
+
+  @실행 command
+    root@labs--93793215:/home/project# curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    100 11248  100 11248    0     0  44283      0 --:--:-- --:--:-- --:--:-- 44283
+    root@labs--93793215:/home/project# chmod 700 get_helm.sh
+    root@labs--93793215:/home/project# ./get_helm.sh
+    Downloading https://get.helm.sh/helm-v3.6.0-linux-amd64.tar.gz
+    Verifying checksum... Done.
+    Preparing to install helm into /usr/local/bin
+    helm installed into /usr/local/bin/helm
+    root@labs--93793215:/home/project# ls
+    PurifierRentalPJT  get_helm.sh  personal
+    root@labs--93793215:/home/project# helm
+    WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /root/.kube/config
+    WARNING: Kubernetes configuration file is world-readable. This is insecure. Location: /root/.kube/config
+    The Kubernetes package manager
+
+    Common actions for Helm:
+    
+    
+	@ Helm 에게 권한을 부여하고 초기화
+  
+    kubectl --namespace kube-system create sa tiller
+    kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+    
+  @실행 command
+    root@labs--93793215:/home/project# kubectl --namespace kube-system create sa tiller
+    serviceaccount/tiller created
+    root@labs--93793215:/home/project# kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller
+    clusterrolebinding.rbac.authorization.k8s.io/tiller created
+    root@labs--93793215:/home/project# 
+
+  @ Helm incubator 추가
+	
+    helm repo add incubator https://charts.helm.sh/incubator 
+    helm repo update 
+    kubectl create ns kafka 
+    helm install my-kafka --namespace kafka incubator/kafka 
+    kubectl get all -n kafka
+
+  @실행 command
+    root@labs--93793215:/home/project# helm repo add incubator https://charts.helm.sh/incubator 
+    WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /root/.kube/config
+    WARNING: Kubernetes configuration file is world-readable. This is insecure. Location: /root/.kube/config
+    "incubator" has been added to your repositories
+    root@labs--93793215:/home/project# helm repo update 
+    WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /root/.kube/config
+    WARNING: Kubernetes configuration file is world-readable. This is insecure. Location: /root/.kube/config
+    Hang tight while we grab the latest from your chart repositories...
+    ...Successfully got an update from the "incubator" chart repository
+    Update Complete. ⎈Happy Helming!⎈
+    root@labs--93793215:/home/project# kubectl create ns kafka
+    namespace/kafka created
+    root@labs--93793215:/home/project# helm install my-kafka --namespace kafka incubator/kafka 
+    WARNING: Kubernetes configuration file is group-readable. This is insecure. Location: /root/.kube/config
+    WARNING: Kubernetes configuration file is world-readable. This is insecure. Location: /root/.kube/config
+    WARNING: This chart is deprecated
+    NAME: my-kafka
+    LAST DEPLOYED: Thu Jun  3 02:23:35 2021
+    NAMESPACE: kafka
+    STATUS: deployed
+    REVISION: 1
+    NOTES:
+    ### Connecting to Kafka from inside Kubernetes
+    
+    root@labs--93793215:/home/project# kubectl get all
+    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+    service/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   71m
+    root@labs--93793215:/home/project# kubectl get all -n kafka
+    NAME                       READY   STATUS    RESTARTS   AGE
+    pod/my-kafka-0             1/1     Running   2          6m20s
+    pod/my-kafka-1             1/1     Running   0          3m16s
+    pod/my-kafka-2             1/1     Running   0          2m6s
+    pod/my-kafka-zookeeper-0   1/1     Running   0          6m20s
+    pod/my-kafka-zookeeper-1   1/1     Running   0          5m25s
+    pod/my-kafka-zookeeper-2   1/1     Running   0          4m27s
+    
+    NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+    service/my-kafka                      ClusterIP   10.100.178.204   <none>        9092/TCP                     6m22s
+    service/my-kafka-headless             ClusterIP   None             <none>        9092/TCP                     6m22s
+    service/my-kafka-zookeeper            ClusterIP   10.100.248.13    <none>        2181/TCP                     6m22s
+    service/my-kafka-zookeeper-headless   ClusterIP   None             <none>        2181/TCP,3888/TCP,2888/TCP   6m22s
+    
+    NAME                                  READY   AGE
+    statefulset.apps/my-kafka             3/3     6m21s
+    statefulset.apps/my-kafka-zookeeper   3/3     6m21s
+    root@labs--93793215:/home/project# 
+
+
+2-11. AWS 클러스터 토큰 가져오기
+  aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
+  	Added new context arn:aws:eks:ap-southeast-2:879772956301:cluster/user13-eks to /root/.kube/config
+  
+  kubectl config current-context
+  kubectl get all
+
+2-12. deploy(GW)
+  kubectl create deploy gateway --image=879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1
+  kubectl get all
+  
+  kubectl expose deployment gateway --type=LoadBalancer --port=8080        #External IP
+
+  @실행Command
+    root@labs--93793215:/home/project# kubectl create deploy gateway --image=879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1
+    deployment.apps/gateway created
+    root@labs--93793215:/home/project# kubectl get all
+    NAME                           READY   STATUS              RESTARTS   AGE
+    pod/gateway-5c8d4c9b79-xjxbg   0/1     ContainerCreating   0          6s
+    
+    NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+    service/kubernetes   ClusterIP   10.100.0.1   <none>        443/TCP   76m
+    
+    NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+    deployment.apps/gateway   0/1     1            0           6s
+    
+    NAME                                 DESIRED   CURRENT   READY   AGE
+    replicaset.apps/gateway-5c8d4c9b79   1         1         0       6s
+    root@labs--93793215:/home/project# kubectl expose deployment gateway --type=LoadBalancer --port=8080
+    service/gateway exposed
+    root@labs--93793215:/home/project# kubectl get all
+    NAME                           READY   STATUS    RESTARTS   AGE
+    pod/gateway-5c8d4c9b79-xjxbg   1/1     Running   0          52s
+    
+    NAME                 TYPE           CLUSTER-IP      EXTERNAL-IP                                                                   PORT(S)          AGE
+    service/gateway      LoadBalancer   10.100.124.40   a6b4ad0aa74284f4fa6955d0b76b2408-272089927.ap-southeast-2.elb.amazonaws.com   8080:31374/TCP   7s
+    service/kubernetes   ClusterIP      10.100.0.1      <none>                                                                        443/TCP          77m
+    
+    NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+    deployment.apps/gateway   1/1     1            1           53s
+    
+    NAME                                 DESIRED   CURRENT   READY   AGE
+    replicaset.apps/gateway-5c8d4c9b79   1         1         1       53s
+    root@labs--93793215:/home/project# 
+
+  @ gateway 삭제 방법
+
+    kubectl delete deploy gateway
+
+2-13. deploy(service)
+
+  cd /home/project/PurifierRentalPJT/Order/kubernetes/;
+  kubectl apply -f deployment.yml;
+  kubectl apply -f service.yaml;
+  
+  cd /home/project/PurifierRentalPJT/Installation/kubernetes/;
+  kubectl apply -f deployment.yml;
+  kubectl apply -f service.yaml;
+  
+  cd /home/project/PurifierRentalPJT/Assignment/kubernetes/;
+  kubectl apply -f deployment.yml;
+  kubectl apply -f service.yaml;
+  
+  cd /home/project/PurifierRentalPJT/Customer/kubernetes/;
+  kubectl apply -f deployment.yml;
+  kubectl apply -f service.yaml;
+  
+  kubectl get all
+
+
+  @실행 Command
+
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# cd /home/project/PurifierRentalPJT/Customer/kubernetes/;
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# kubectl apply -f deployment.yml;
+    deployment.apps/customer created
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# kubectl apply -f service.yaml;
+    service/customer created
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# kubectl get all
+    NAME                                READY   STATUS    RESTARTS   AGE
+    pod/assignment-565cff5999-rlsqh     1/1     Running   0          22m
+    pod/customer-7f8f5ff4b4-4rqgs       1/1     Running   0          42s
+    pod/gateway-5c8d4c9b79-xjxbg        1/1     Running   0          35m
+    pod/installation-78759c9496-kdblv   1/1     Running   0          23m
+    pod/order-5fd699d79d-7f6k4          1/1     Running   0          5m54s
+    
+    NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP                                                                   PORT(S)          AGE
+    service/assignment     ClusterIP      10.100.140.219   <none>                                                                        8080/TCP         22m
+    service/customer       ClusterIP      10.100.0.156     <none>                                                                        8080/TCP         40s
+    service/gateway        LoadBalancer   10.100.124.40    a6b4ad0aa74284f4fa6955d0b76b2408-272089927.ap-southeast-2.elb.amazonaws.com   8080:31374/TCP   34m
+    service/installation   ClusterIP      10.100.51.118    <none>                                                                        8080/TCP         23m
+    service/kubernetes     ClusterIP      10.100.0.1       <none>                                                                        443/TCP          111m
+    service/order          ClusterIP      10.100.43.109    <none>                                                                        8080/TCP         5m50s
+    
+    NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+    deployment.apps/assignment     1/1     1            1           22m
+    deployment.apps/customer       1/1     1            1           43s
+    deployment.apps/gateway        1/1     1            1           35m
+    deployment.apps/installation   1/1     1            1           23m
+    deployment.apps/order          1/1     1            1           5m55s
+    
+    NAME                                      DESIRED   CURRENT   READY   AGE
+    replicaset.apps/assignment-565cff5999     1         1         1       22m
+    replicaset.apps/customer-7f8f5ff4b4       1         1         1       43s
+    replicaset.apps/gateway-5c8d4c9b79        1         1         1       35m
+    replicaset.apps/installation-78759c9496   1         1         1       23m
+    replicaset.apps/order-5fd699d79d          1         1         1       5m55s
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# 
+
+  @order deploy log보기
+    kubectl logs pod/order-6d4849f4f5-h64hv 
+
+  @AWS 주문 서비스 확인
+    http -f GET http://a6b4ad0aa74284f4fa6955d0b76b2408-272089927.ap-southeast-2.elb.amazonaws.com:8080/customers
+
+  @실행 command
+    root@labs--93793215:/home/project# http -f GET http://a6b4ad0aa74284f4fa6955d0b76b2408-272089927.ap-southeast-2.elb.amazonaws.com:8080/customers
+    HTTP/1.1 200 OK
+    Content-Type: application/hal+json;charset=UTF-8
+    Date: Thu, 03 Jun 2021 04:07:51 GMT
+    transfer-encoding: chunked
+    
+    {
+        "_embedded": {
+            "customers": []
+        },
+        "_links": {
+            "profile": {
+                "href": "http://customer:8080/profile/customers"
+            },
+            "self": {
+                "href": "http://customer:8080/customers{?page,size,sort}",
+                "templated": true
+            }
+        },
+        "page": {
+            "number": 0,
+            "size": 20,
+            "totalElements": 0,
+            "totalPages": 0
+        }
+    }
+    
+    root@labs--93793215:/home/project# 
+
+  @주문요청
+    http -f POST http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/joinOrder productId=101 productName="PURI1" installationAddress="AWS_Address1001" customerId=201
+
+  @주문 취소
+    http -f POST http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/cancelOrder id=1
+
+  @설치 완료
+    http -f PATCH http://a6b4ad0aa74284f4fa6955d0b76b2408-272089927.ap-southeast-2.elb.amazonaws.com:8080/installations orderId=1
+  
+  @후기 등록
+    http -f POST http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="Good Water"
+
+2-14. 서킷브레이크
+
+  @istio 설치
+    curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -
+    cd istio-1.7.1
+    export PATH=$PWD/bin:$PATH
+    istioctl install --set profile=demo --set hub=gcr.io/istio-release
+    
+    kubectl label namespace default istio-injection=enabled 
+
+  @마이크로서비스 재배포
+    cd /home/project/PurifierRentalPJT/Order/kubernetes/;
+    kubectl apply -f deployment.yml;
+    kubectl apply -f service.yaml;
+    
+    cd /home/project/PurifierRentalPJT/Installation/kubernetes/;
+    kubectl apply -f deployment.yml;
+    kubectl apply -f service.yaml;
+    
+    cd /home/project/PurifierRentalPJT/Assignment/kubernetes/;
+    kubectl apply -f deployment.yml;
+    kubectl apply -f service.yaml;
+    
+    cd /home/project/PurifierRentalPJT/Customer/kubernetes/;
+    kubectl apply -f deployment.yml;
+    kubectl apply -f service.yaml;
+
+  @istio-system 상태 확인
+  
+    kubectl get all -n istio-system
+  
+  @실행 Command
+    root@labs--93793215:/home/project/PurifierRentalPJT/Order/kubernetes# kubectl get all -n istio-system
+    NAME                                        READY   STATUS    RESTARTS   AGE
+    pod/istio-egressgateway-74f9769788-gcwvx    1/1     Running   0          20m
+    pod/istio-ingressgateway-74645cb9df-m4xpz   1/1     Running   0          20m
+    pod/istiod-756fdd548-kcbdf                  1/1     Running   0          20m
+    
+    NAME                           TYPE           CLUSTER-IP      EXTERNAL-IP                                                                    PORT(S)                                                                      AGE
+    service/istio-egressgateway    ClusterIP      10.100.35.174   <none>                                                                         80/TCP,443/TCP,15443/TCP                                                     20m
+    service/istio-ingressgateway   LoadBalancer   10.100.64.139   a9d6e8d62cf5e4dc6916d1aeb7823ce5-1708400333.ap-southeast-2.elb.amazonaws.com   15021:31849/TCP,80:30185/TCP,443:31095/TCP,31400:32589/TCP,15443:31014/TCP   20m
+    service/istiod                 ClusterIP      10.100.69.132   <none>                                                                         15010/TCP,15012/TCP,443/TCP,15014/TCP,853/TCP                                20m
+    
+    NAME                                   READY   UP-TO-DATE   AVAILABLE   AGE
+    deployment.apps/istio-egressgateway    1/1     1            1           20m
+    deployment.apps/istio-ingressgateway   1/1     1            1           20m
+    deployment.apps/istiod                 1/1     1            1           20m
+    
+    NAME                                              DESIRED   CURRENT   READY   AGE
+    replicaset.apps/istio-egressgateway-74f9769788    1         1         1       20m
+    replicaset.apps/istio-ingressgateway-74645cb9df   1         1         1       20m
+    replicaset.apps/istiod-756fdd548                  1         1         1       20m
+    root@labs--93793215:/home/project/PurifierRentalPJT/Order/kubernetes# 
+    
+    재배포 후
+    
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# kubectl get all
+    NAME                                READY   STATUS    RESTARTS   AGE
+    pod/assignment-76bc889cf8-qmggt     2/2     Running   0          3m12s
+    pod/customer-686767845-9vsbd        2/2     Running   0          2m54s
+    pod/gateway-5c8d4c9b79-m7bs8        2/2     Running   0          26s
+    pod/installation-6cb6996477-fq2kb   2/2     Running   0          3m4s
+    pod/order-6d5b449987-f9t96          2/2     Running   0          6m12s
+    
+    NAME                   TYPE           CLUSTER-IP       EXTERNAL-IP                                                                    PORT(S)          AGE
+    service/assignment     ClusterIP      10.100.243.225   <none>                                                                         8080/TCP         3m12s
+    service/customer       ClusterIP      10.100.178.164   <none>                                                                         8080/TCP         2m53s
+    service/gateway        LoadBalancer   10.100.46.139    ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com   8080:31805/TCP   5s
+    service/installation   ClusterIP      10.100.182.118   <none>                                                                         8080/TCP         3m3s
+    service/kubernetes     ClusterIP      10.100.0.1       <none>                                                                         443/TCP          4h36m
+    service/order          ClusterIP      10.100.229.57    <none>                                                                         8080/TCP         6m7s
+    
+    NAME                           READY   UP-TO-DATE   AVAILABLE   AGE
+    deployment.apps/assignment     1/1     1            1           3m13s
+    deployment.apps/customer       1/1     1            1           2m55s
+    deployment.apps/gateway        1/1     1            1           27s
+    deployment.apps/installation   1/1     1            1           3m5s
+    deployment.apps/order          1/1     1            1           6m13s
+    
+    NAME                                      DESIRED   CURRENT   READY   AGE
+    replicaset.apps/assignment-76bc889cf8     1         1         1       3m13s
+    replicaset.apps/customer-686767845        1         1         1       2m55s
+    replicaset.apps/gateway-5c8d4c9b79        1         1         1       27s
+    replicaset.apps/installation-6cb6996477   1         1         1       3m5s
+    replicaset.apps/order-6d5b449987          1         1         1       6m13s
+    root@labs--93793215:/home/project/PurifierRentalPJT/Customer/kubernetes# 
+    
+
+
+  @kiali 설치
+    vi samples/addons/kiali.yaml
+    	4라인의 apiVersion: 
+    		apiextensions.k8s.io/v1beta1을 apiVersion: apiextensions.k8s.io/v1으로 수정
+
+    kubectl apply -f samples/addons
+    	kiali.yaml 오류발생시, 아래 명령어 실행
+    		kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.7/samples/addons/kiali.yaml
+
+    kubectl edit svc kiali -n istio-system
+    	:%s/ClusterIP/LoadBalancer/g
+    	:wq!
+    EXTERNAL-IP 확인
+    	kubectl get all -n istio-system 
+    모니터링 시스템(kiali) 접속 
+    	EXTERNAL-IP:20001 (admin/admin)
+
+  @ siege 설치(설치 안 된 경우)
+    apt-get update -y
+    apt-get install -y siege
+    
+  @ 서킷브레이크 설정(Destination Rule 적용)
+    cat <<EOF | kubectl apply -f -
+    apiVersion: networking.istio.io/v1alpha3
+    kind: DestinationRule
+    metadata:
+      name: customer
+    spec:
+      host: customer
+      trafficPolicy:
+        connectionPool:
+          tcp:
+            maxConnections: 1           # 목적지로 가는 HTTP, TCP connection 최대 값. (Default 1024)
+          http:
+            http1MaxPendingRequests: 1  # 연결을 기다리는 request 수를 1개로 제한 (Default 
+            maxRequestsPerConnection: 1 # keep alive 기능 disable
+            maxRetries: 3               # 기다리는 동안 최대 재시도 수(Default 1024)
+        outlierDetection:
+          consecutiveErrors: 5          # 5xx 에러가 5번 발생하면
+          interval: 1s                  # 1초마다 스캔 하여
+          baseEjectionTime: 30s         # 30 초 동안 circuit breaking 처리   
+          maxEjectionPercent: 100       # 100% 로 차단
+    EOF
+
+  @서킷브레이크 테스트
+
+    siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
+
+
+  @서킷브레이크 destinationrule 삭제
+    kubectl delete dr --all;
+
+  @서킷브레이크 재테스트
+    siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
+
+2-15. liveness 적용
+
+  @ liveness.yml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: customer
+      labels:
+        app: customer
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: customer
+      template:
+        metadata:
+          labels:
+            app: customer
+        spec:
+          containers:
+            - name: customer
+              image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2
+              args:
+              - /bin/sh
+              - -c
+              - touch /tmp/healthy; sleep 10; rm -rf /tmp/healthy; sleep 600;
+              ports:
+                - containerPort: 8080
+              livenessProbe:
+                exec:
+                  command:
+                  - cat
+                  - /tmp/healthy
+                initialDelaySeconds: 3
+                timeoutSeconds: 2
+                periodSeconds: 5
+                failureThreshold: 5
+
+  @결과 확인
+    
+    kubectl get pods -w
+    
+    root@labs--93793215:/home/project# kubectl get pods -w
+    NAME                               READY   STATUS    RESTARTS   AGE
+    assignment-76bc889cf8-qmggt        2/2     Running   0          70m
+    order-686767845-9vsbd              2/2     Running   0          70m
+    gateway-5c8d4c9b79-m7bs8           2/2     Running   0          68m
+    installation-6cb6996477-fq2kb      2/2     Running   0          70m
+    customer-6c4f8fcd88-hj26m          2/2     Running   5          2m55s
+    customer-6c4f8fcd88-hj26m          1/2     CrashLoopBackOff   5          3m15s
+    customer-6c4f8fcd88-hj26m          2/2     Running            6          4m36s
+    customer-6c4f8fcd88-hj26m          1/2     CrashLoopBackOff   6          5m1s
+    customer-6c4f8fcd88-hj26m          2/2     Running            7          7m45s
+
+2-16. 오토스케일
+
+  @ CPU 사용량이 1프로를 넘어서면 replica를 10개까지 늘려준다.
+    kubectl autoscale deploy customer --min=1 --max=10 --cpu-percent=1
+  
+  @ 오토스케일 모니터링
+    kubectl get deploy customer -w
+    kubectl get hpa customer -w
+
+  @ autoscale 제거
+    kubectl delete hpa order
+
+  @실행 Command
+      
+    root@labs--93793215:/home/project/operation# kubectl get hpa
+    NAME    REFERENCE          TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+    customer   Deployment/order   5%/1%    1         10        1          3h47m
+    root@labs--93793215:/home/project/operation# kubectl delete hpa customer
+    horizontalpodautoscaler.autoscaling "customer" deleted
+    root@labs--93793215:/home/project/operation# 
+
+  @ 오토스케일이 발생하지 않는 경우
+  - 메트릭스서버 설치
+  
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    kubectl get deployment metrics-server -n kube-system
+
+2-17. Secret
+
+  @ base64 암호화
+    
+    root@labs--93793215:/home/project/operation# echo 'Administrator' | base64
+    QWRtaW5pc3RyYXRvcgo=
+    root@labs--93793215:/home/project/operation# echo 'pass123456' | base64
+    cGFzczEyMzQ1Ngo=
+
+  @ secret.yml
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: order
+    type: Opaque
+    data:
+      username: QWRtaW5pc3RyYXRvcgo=
+      password: cGFzczEyMzQ1Ngo=
+    EOF
+
+  @ 소스코드(OrderController.java)
+  
+    @RequestMapping(value = "/order/joinOrder", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+  	public boolean joinOrder(
+  		@RequestParam("productId") 					Long 	productId, 
+  		@RequestParam("productName")  					String 	productName,
+  		@RequestParam( value="installationAddress", required = false)  	String 	installationAddress,
+  		@RequestParam("customerId")  					Long 	customerId,
+  		@RequestParam( value="orderDate", required = false)  		String 	orderDate
+  					) throws Exception {
+  		
+  		
+  		System.out.println( "### 로그인 사용자 아이디 = " +System.getenv().get("INIT_NAME"));
+  		System.out.println( "### 로그인 사용자 비밀번호 = " +System.getenv().get("INIT_PW"));		
+
+  @ istio 설정으로 customer Container에서 확인
+  kubectl logs pod/customer-6d5b449987-nqbws -c customer
+
+  @ 로그
+        
+    ### 로그인 사용자 아이디 = Administrator
+    
+    ### 로그인 사용자 비밀번호 = pass123456
+
+15. 참고
+  http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1/ops-utility
+  http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1
+  http://labs.msaez.io/#/courses/assessment/running@cloud-final-aws-1st
+  https://workflowy.com/s/assessment/qJn45fBdVZn4atl3
+  https://github.com/longsawyer/gasstation/
+  
+  docker file image 한도 초과시
+  FROM ghcr.io/gkedu/openjdk:8u212-jdk-alpine
+
+
+
