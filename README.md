@@ -488,123 +488,129 @@ Saga(04  3번 주문없음) HTTP GET
 
 ## 동기식 호출과 Fallback 처리
 
-- 분석 단계에서의 조건 중 하나로 배정(Assignment) 서비스에서 인터넷 가입신청 취소를 요청 받으면, 
-설치(installation) 서비스 취소 처리하는 부분을 동기식 호출하는 트랜잭션으로 처리하기로 하였다. 
+- 분석 단계에서의 조건 중 하나로 주문(order) 서비스에서 후기 등록 요청을 받으면, 
+고객관리(Customer) 서비스에서 후기 등록 처리하는 부분을 동기식 호출하는 트랜잭션으로 처리하기로 하였다. 
 - 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어 있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 설치 서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현
 ```
-# (Assignment) InstallationService.java
+# (Order) CustomerService.java
 
-	package purifierrentalpjt.external;
-	
-	import org.springframework.cloud.openfeign.FeignClient;
-	import org.springframework.web.bind.annotation.RequestBody;
-	import org.springframework.web.bind.annotation.RequestMapping;
-	import org.springframework.web.bind.annotation.RequestMethod;
+package purifierrentalpjt.external;
 
-	/**
- 	 * 설치subsystem 동기호출
- 	 * @author Administrator
- 	 * 아래 주소는 Gateway주소임
- 	*/
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.util.Date;
 
-	@FeignClient(name="Installation", url="http://installation:8080")
-	//@FeignClient(name="Installation", url="http://localhost:8083")
-	public interface InstallationService {
+//@FeignClient(name="Customer", url="http://customer:8080")
+@FeignClient(name="Customer", url="http://localhost:8084")
+public interface CustomerService {
 
-		@RequestMapping(method= RequestMethod.POST, path="/installations")
-    		public void cancelInstallation(@RequestBody Installation installation);
+    @RequestMapping(method= RequestMethod.POST, path="/customers")
+    public void commentCustomer(@RequestBody Customer customer);
 
-	}
+}
 ```
 
-정수기 렌탈 서비스 가입 취소 요청(cancelRequest)을 받은 후, 처리하는 부분
+정수기 렌탈 서비스 후기 등록 요청(commentCustomer)을 받은 후, 처리하는 부분
 ```
-# (Installation) InstallationController.java
+# (Customer) CustomerController.java
 
-	package purifierrentalpjt;
-
-	@RestController
-	public class InstallationController {
-
-    	  @Autowired
-    	  InstallationRepository installationRepository;
-
-    	  /**
-     	   * 설치취소
-     	   * @param installation
-           */
-	  @RequestMapping(method=RequestMethod.POST, path="/installations")
-    	  public void installationCancellation(@RequestBody Installation installation) {
+  /**
+     * 코멘트 등록
+     * @param customer
+     */
+    @RequestMapping(method=RequestMethod.POST, path="/customers")
+    public void commentCustomer(@RequestBody Customer customer) {
     	
-    		System.out.println( "### 동기호출 -설치취소=" +ToStringBuilder.reflectionToString(installation) );
+    	System.out.println( "### 동기호출 - comment Customer =");
 
-    		Optional<Installation> opt = installationRepository.findByOrderId(installation.getOrderId());
-    		if( opt.isPresent()) {
-    			Installation installationCancel =opt.get();
-    			installationCancel.setStatus("installationCanceled");
-    			installationRepository.save(installationCancel);
-    		} else {
-    			System.out.println("### 설치취소 - 못찾음");
-    		}
+    	Optional<Customer> opt = customerRepository.findById(customer.getId());
+    	if( opt.isPresent()) {
+    		Customer customerComment =opt.get();
+            customerComment.setPoint(customer.getPoint());
+            customerComment.setCommentMessage(customer.getCommentMessage());
+    		customerComment.setStatus("commentChanged");
+    		customerRepository.save(customerComment);
+            System.out.println( "### 동기호출 - 코멘트 수정 =");
+
+
+            customerComment.fireEvent();
+    	} else {
+    		
+            Customer customerComment = new Customer();
+            customerComment.setId(customer.getId());
+            customerComment.setCustomerId(customer.getCustomerId());
+            customerComment.setProductId(customer.getProductId());
+            customerComment.setProductName(customer.getProductName());
+            customerComment.setPoint(customer.getPoint());
+            customerComment.setCommentMessage(customer.getCommentMessage());
+    		customerComment.setStatus("commentRegitered");
+    
+            customerRepository.save(customerComment);
+                
+    	    System.out.println( "### 동기호출 - 코멘트 등록");
+            customerComment.fireEvent();
     	}
 ```
 
-주문 취소에 대한 동기 호출 요청(Assignment)
-![102  주문취소(05  assignment-orderCancelAccepted pub 그리고 cancelInstallation 동기호출)](https://user-images.githubusercontent.com/81424367/120089969-e2f5fa80-c139-11eb-8088-40fb62562ef8.png)
+후기 등록에 대한 동기 호출 요청(order)
+![600  동기 호출(order)](https://user-images.githubusercontent.com/81424367/120754359-8898d780-c547-11eb-868e-82a2dbaf38cd.png)
 
-주문 취소에 대한 동기 호출 처리(Installation)
-![102  주문취소(07  installation-동기호출 처리)](https://user-images.githubusercontent.com/81424367/120089971-e38e9100-c139-11eb-82d5-e30958103b9c.png)
+후기 등록에 대한 동기 호출 처리(customer)
+![600  동기 호출(customer)](https://user-images.githubusercontent.com/81424367/120754358-8767aa80-c547-11eb-9659-f51b15b1f1ce.png)
 
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
 
-가입 신청(order)이 이루어진 후에 배정(Assignment) 서비스로 이를 알려주는 행위는 비동기식으로 처리하여, 배정(Assignment) 서비스의 처리를 위하여 가입신청(order)이 블로킹 되지 않도록 처리한다.
+후기 등록(customer)이 이루어진 후에 주문(order) 서비스로 이를 알려주는 행위는 비동기식으로 처리하였다.
  
 - 이를 위하여 가입 신청에 기록을 남긴 후에 곧바로 가입 신청이 되었다는 도메인 이벤트를 카프카로 송출한다.(Publish)
 ```
-# (order) Order.java
+# (customer) Customer.java
 
     @PostPersist
     public void onPostPersist(){
+        
+        CommentAccepted commentAccepted = new CommentAccepted();
+        System.out.println("##### 코멘트 확인 Pub(commentAccepted) #####" + commentAccepted.toJson() + "\n\n"); 
 
-        System.out.println("##### 주문 생성 Pub(orderRequest) #####");
-        JoinOrdered joinOrdered = new JoinOrdered();
-        BeanUtils.copyProperties(this, joinOrdered);
-        joinOrdered.publishAfterCommit();
+        commentAccepted.setId(this.getId());
+        commentAccepted.setOrderId(this.getId());
+        commentAccepted.setCustomerId(this.getCustomerId());
+
+        BeanUtils.copyProperties(this, commentAccepted);
+        commentAccepted.publishAfterCommit();
+
     }
 ```
 - 배정 서비스에서는 가입신청 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다.
 ```
-# (Assignment) PolicyHandler.java
+# (order) PolicyHandler.java
 
 @Service
 public class PolicyHandler{
-    @Autowired AssignmentRepository assignmentRepository;
+    @Autowired OrderRepository orderRepository;
 
+    /**
+     * 코멘트 등록 후 코멘트 처리 완료됬을때 처리
+     * @param commentAccepted
+     */
     @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverJoinOrdered_OrderRequest(@Payload JoinOrdered joinOrdered){
+    public void wheneverCommentAccepted_NotifyCommentAccepted(@Payload CommentAccepted commentAccepted){
 
-        if(!joinOrdered.validate()) return;
+        if(!commentAccepted.validate()) return;
 
-        System.out.println("\n\n##### listener OrderRequest : " + joinOrdered.toJson() + "\n\n");
+        System.out.println("\n\n##### listener NotifyCommentAccepted : ");
 
-        Assignment assignment = new Assignment();
-
-        assignment.setId(joinOrdered.getId());
-        assignment.setInstallationAddress(joinOrdered.getInstallationAddress());
-        assignment.setStatus("orderRequest");
-        assignment.setEngineerName("Enginner" + joinOrdered.getId());
-        assignment.setEngineerId(joinOrdered.getId());
-        assignment.setOrderId(joinOrdered.getId());
-
-        assignmentRepository.save(assignment);
-        }
+        System.out.println("\n\n##### Comment 등록해주셔서 감사합니다.  : ");
+            
     }
 }
 ```
-가입신청은 배정 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 배정 서비스가 유지보수로 인해 잠시 내려간 상태라도 가입신청을 받는데 문제가 없다.
+후기 등록은 고객담당 서비스와 완전히 분리되어 있으며, 이벤트 수신에 따라 처리되기 때문에, 고객담당 서비스가 유지보수로 인해 잠시 내려간 상태라도 후기등록을 받는데 문제가 없다.
 
 
 (개인과제)
@@ -668,10 +674,44 @@ public class PolicyHandler{
 
 ## CQRS
 
-가입신청 상태 조회를 위한 서비스를 CQRS 패턴으로 구현하였다.
-- Order, Assignment, Installation 개별 aggregate 통합 조회로 인한 성능 저하를 막을 수 있다.
-- 모든 정보는 비동기 방식으로 발행된 이벤트를 수신하여 처리된다.
-- 설계 : MSAEZ 설계의 view 매핑 설정 참조
+주문 수량 정보 조회를 위한 서비스를 CQRS 패턴으로 구현하였다.
+- 주문 정보는 비동기 방식으로 발행된 이벤트를 수신하여 처리된다.
+- 설계 : MSAEz 설계의 view 매핑 설정 참조
+
+```
+# (customer) OrderSummaryviewHandler.java
+
+@Service
+public class OrderSummaryviewHandler {
+
+
+    @Autowired
+    private OrderSummaryRepository orderSummaryRepository;
+
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverJoinOrdered_OrderRequest(@Payload JoinOrdered joinOrdered){
+
+        if(!joinOrdered.validate()) return;
+
+        System.out.println("\n\n##### listener OrderRequest : 주문 집계 view" + joinOrdered.toJson() + "\n\n");
+
+        Optional<OrderSummaryview> opt = orderSummaryRepository.findById(joinOrdered.getProductId());
+
+        if( opt.isPresent()) {
+        	OrderSummaryview orderSummaryview =opt.get();
+        	orderSummaryview.setOrderCount(orderSummaryview.getOrderCount()+1);
+        	
+        	orderSummaryRepository.save(orderSummaryview);
+        } else {
+        	OrderSummaryview orderSummaryview =new OrderSummaryview();
+            orderSummaryview.setProductId(joinOrdered.getProductId());
+            orderSummaryview.setOrderCount(1L);
+
+        	orderSummaryRepository.save(orderSummaryview);
+        }
+
+    }
+```
 
 - 주문요청
 
@@ -693,6 +733,8 @@ public class PolicyHandler{
 
 ![101  주문요청(11  order-view)](https://user-images.githubusercontent.com/81424367/120089884-46335d00-c139-11eb-99f6-c32d23a4c871.png)
 
+- OrderSummaryview 처리
+![602  CQRS(customer)](https://user-images.githubusercontent.com/81424367/120755217-a581da80-c548-11eb-8c8b-c80d39e596e1.png)
 
 ## API Gateway
 
