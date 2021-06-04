@@ -1098,6 +1098,11 @@ siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-sout
 
 #### 메트릭스 서버 설치
 
+```
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    kubectl get deployment metrics-server -n kube-system
+```
+
 ![514  02  메트릭스 설치](https://user-images.githubusercontent.com/81424367/120621965-5b8deb80-c499-11eb-8c5c-3ee3175f72d5.png)
 
 #### AutoScaleout을 확인
