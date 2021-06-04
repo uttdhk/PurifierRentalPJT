@@ -937,22 +937,22 @@ pod의 container가 정상적으로 기동되는지 확인하여, 비정상 상�
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order
+  name: customer
   labels:
-    app: order
+    app: customer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order
+      app: customer
   template:
     metadata:
       labels:
-        app: order
+        app: customer
     spec:
       containers:
-        - name: order
-          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2
+        - name: customer
+          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2
           args:
           - /bin/sh
           - -c
@@ -968,6 +968,7 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+
 ```
 
 #### liveness 적용 후 결과 화면
@@ -978,11 +979,11 @@ kubectl get pods -w                                        # pod의 상태 모�
 - Order Pod의 CrashLoopBackOff 상태 확인
 - 이때, 재기동 제어값인 /tmp/healthy파일을 강제로 지워 liveness가 pod를 비정상 상태라고 판단하도록 하였다.    
 - 5번 재시도 후에도 파드가 뜨지 않았을 경우 CrashLoopBackOff 상태가 됨을 확인하였다.
-![513  02  liveness테스트](https://user-images.githubusercontent.com/81424367/120605297-dc90b700-c488-11eb-95f0-da9df688bf23.png)
+![513  04  liveness테스트1(customer)](https://user-images.githubusercontent.com/81424367/120748680-27203b00-c53e-11eb-965b-46f918652f46.png)
 
 - 일정 시간 후 화면
 
-![513  03  liveness테스트2](https://user-images.githubusercontent.com/81424367/120605303-dd294d80-c488-11eb-9d57-79598232f69f.png)
+![513  04  liveness테스트2(customer)](https://user-images.githubusercontent.com/81424367/120748682-27b8d180-c53e-11eb-891a-128a0f267c2a.png)
 
 
 ### 오토스케일 아웃
@@ -998,27 +999,28 @@ kubectl autoscale deploy order --min=1 --max=10 --cpu-percent=1
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order
+  name: customer
   labels:
-    app: order
+    app: customer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order
+      app: customer
   template:
     metadata:
       labels:
-        app: order
+        app: customer
     spec:
       containers:
-        - name: order
+        - name: customer
           resources:
             limits: 
               cpu: 500m
             requests:
               cpu: 200m
-          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-order:v2
+          image: 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2
+
 ```
 
 #### 오토스케일이 어떻게 되고 있는지 모니터링을 걸어준다.
@@ -1044,8 +1046,8 @@ siege -c50 -t180S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-sout
 
 #### AutoScaleout을 확인
 
-![514  03  autoscalout 확인](https://user-images.githubusercontent.com/81424367/120621967-5c268200-c499-11eb-8303-6f320937604b.png)
-![514  05  쿠버네티스 상태 확인](https://user-images.githubusercontent.com/81424367/120625903-153a8b80-c49d-11eb-90fd-57a8fc4e0dae.png)
+![514  07  autoscalout 확인(customer)](https://user-images.githubusercontent.com/81424367/120748536-e6282680-c53d-11eb-9431-9a3287da15cd.png)
+![514  05  쿠버네티스 상태 확인(customer)](https://user-images.githubusercontent.com/81424367/120748532-e4f6f980-c53d-11eb-819d-b8e724c9a5df.png)
 
 ## 무정지 재배포
 
