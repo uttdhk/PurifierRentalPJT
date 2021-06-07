@@ -838,6 +838,28 @@ cd /home/project/PurifierRentalPJT/Customer;docker push 879772956301.dkr.ecr.ap-
 cd /home/project/PurifierRentalPJT/gateway;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1;
 ```
 
+### Helm 설치
+
+#### Helm 설치하기
+```
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh			# Download Helm Script
+chmod 700 get_helm.sh											# 실행권한 부여
+./get_helm.sh												# 설치 진행
+```
+
+#### Helm incubator repository 추가
+```
+helm repo add incubator https://charts.helm.sh/incubator
+```
+
+#### chart 설치
+```
+helm repo update						# 최신 chart 리스트 업데이트
+kubectl create ns kafka						# kafka namespace 생성
+helm install my-kafka --namespace kafka incubator/kafka 	# my-kafka에 incubator 설치
+kubectl get all -n kafka					# kafka 설치 확인
+```
+
 #### kubectrl deploy, service
 ```
 kubectl create deploy gateway --image=879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1
