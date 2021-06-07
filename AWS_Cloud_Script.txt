@@ -3,7 +3,7 @@
 ID : 740569282574	
 관리콘솔 : https://gkn-ytjeong.signin.aws.amazon.com/console
 Region코드 : ap-southeast-2
-접두어 : puri
+접두어 : user13
 클러스터 : user13-eks
 
 
