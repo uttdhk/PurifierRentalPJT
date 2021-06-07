@@ -1459,6 +1459,8 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
   - https://www.joedog.org/siege-manual/
   - 명령어 : siege -c100 -t60S -v 'http://...' 
 - base64
+  - base64 인코딩, 디코딩을 하는 리눅스 명령어
+  - https://zetawiki.com/wiki/리눅스_base64_인코딩,_디코딩
   - 명령어 :
     - echo -n 'hello world' | base64
     - echo aGVsbG8gd29ybGQ= | base64 --decode
