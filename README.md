@@ -1376,15 +1376,18 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
 
 ## 설계
 - MSAEz 
-  Microservice model 구현 및 spring-boot 소스 생성
-  http://www.msaez.io/
+Microservice model 구현 및 spring-boot 소스 생성
+http://www.msaez.io/
 
-##개발환경 및 사용 명령어
+## 개발환경 및 사용 명령어
+
 - java
-  version : 1.8.0 
-  https://www.oracle.com/kr/java/technologies/javase/javase-jdk8-downloads.html
+version : 1.8.0 
+https://www.oracle.com/kr/java/technologies/javase/javase-jdk8-downloads.html
+
 - spring-boot 
-  실행만 하면 스프링 기반의 상용화가 가능한  애플리케이션을 쉽게 만들기 위해 단독 실행을 가능하게 해주는 스프링 프로젝트
+실행만 하면 스프링 기반의 상용화가 가능한  애플리케이션을 쉽게 만들기 위해 단독 실행을 가능하게 해주는 스프링 프로젝트
+
 - maven
   version : 3.6.3
   자바용 프로젝트 관리 도구. 
