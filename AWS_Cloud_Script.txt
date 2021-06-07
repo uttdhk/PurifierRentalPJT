@@ -280,6 +280,8 @@ Region코드 : ap-southeast-2
 
 2-6. Region 설정
   aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
+  	Added new context arn:aws:eks:ap-southeast-2:879772956301:cluster/user13-eks to /root/.kube/config
+  
   kubectl config current-context
   kubectl get all
 
@@ -397,6 +399,13 @@ Region코드 : ap-southeast-2
     v1: digest: sha256:6bd3c04405000dd1d8edc5b935eb68f263eecb7bd9a13ed926557ffbae35b518 size: 1159
     root@labs--93793215:/home/project/PurifierRentalPJT/gateway# 
 
+  
+  # docker file image 한도 초과시(https://www.docker.com/blog/checking-your-current-docker-pull-rate-limits-and-status/)
+  - 변경전
+  FROM openjdk:8u212-jdk-alpine
+  - 변경후
+  FROM ghcr.io/gkedu/openjdk:8u212-jdk-alpine
+
 2-10. 카프카설치
 	
 	@ Helm 3.x 설치(권장)
@@ -496,14 +505,7 @@ Region코드 : ap-southeast-2
     root@labs--93793215:/home/project# 
 
 
-2-11. AWS 클러스터 토큰 가져오기
-  aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
-  	Added new context arn:aws:eks:ap-southeast-2:879772956301:cluster/user13-eks to /root/.kube/config
-  
-  kubectl config current-context
-  kubectl get all
-
-2-12. deploy(GW)
+2-11. deploy(GW)
   kubectl create deploy gateway --image=879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1
   kubectl get all
   
@@ -545,7 +547,7 @@ Region코드 : ap-southeast-2
 
     kubectl delete deploy gateway
 
-2-13. deploy(service)
+2-12. deploy(service)
 
   cd /home/project/PurifierRentalPJT/Order/kubernetes/;
   kubectl apply -f deployment.yml;
@@ -652,7 +654,7 @@ Region코드 : ap-southeast-2
   @후기 등록
     http -f POST http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment id=1 productId=101 productName="PURI1" customerId=201 point=97 commentMessage="Good Water"
 
-2-14. 서킷브레이크
+2-13. 서킷브레이크 설정
 
   @istio 설치
     curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -
@@ -796,7 +798,7 @@ Region코드 : ap-southeast-2
   @서킷브레이크 재테스트
     siege -c100 -t60S -v 'http://ae725b80f27be48caaea2ae8ed546c7d-1955668814.ap-southeast-2.elb.amazonaws.com:8080/order/registerComment POST id=1&productId=101&productName=PURI1&customerId=201&point=97&commentMessage=Good Water'
 
-2-15. liveness 적용
+2-14. liveness 적용
 
   @ liveness.yml
     apiVersion: apps/v1
@@ -850,7 +852,7 @@ Region코드 : ap-southeast-2
     customer-6c4f8fcd88-hj26m          1/2     CrashLoopBackOff   6          5m1s
     customer-6c4f8fcd88-hj26m          2/2     Running            7          7m45s
 
-2-16. 오토스케일
+2-15. 오토스케일
 
   @ CPU 사용량이 1프로를 넘어서면 replica를 10개까지 늘려준다.
     kubectl autoscale deploy customer --min=1 --max=10 --cpu-percent=1
@@ -877,7 +879,7 @@ Region코드 : ap-southeast-2
     kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
     kubectl get deployment metrics-server -n kube-system
 
-2-17. Secret
+2-16. Secret
 
   @ base64 암호화
     
@@ -922,15 +924,16 @@ Region코드 : ap-southeast-2
     
     ### 로그인 사용자 비밀번호 = pass123456
 
-15. 참고
+17. 참고
+  http://www.msaez.io/
+  http://msaschool.io/
   http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1/ops-utility
   http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1
   http://labs.msaez.io/#/courses/assessment/running@cloud-final-aws-1st
   https://workflowy.com/s/assessment/qJn45fBdVZn4atl3
   https://github.com/longsawyer/gasstation/
-  
-  docker file image 한도 초과시
-  FROM ghcr.io/gkedu/openjdk:8u212-jdk-alpine
+  https://github.com/msa-ez
+
 
 
 
