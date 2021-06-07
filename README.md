@@ -1382,27 +1382,27 @@ http://www.msaez.io/
 ## 개발환경 및 사용 명령어
 
 - java
-version : 1.8.0 
-https://www.oracle.com/kr/java/technologies/javase/javase-jdk8-downloads.html
+  - version : 1.8.0 
+  - https://www.oracle.com/kr/java/technologies/javase/javase-jdk8-downloads.html
 
 - spring-boot 
-실행만 하면 스프링 기반의 상용화가 가능한  애플리케이션을 쉽게 만들기 위해 단독 실행을 가능하게 해주는 스프링 프로젝트
+  - 실행만 하면 스프링 기반의 상용화가 가능한  애플리케이션을 쉽게 만들기 위해 단독 실행을 가능하게 해주는 스프링 프로젝트
 
 - maven
-  version : 3.6.3
-  자바용 프로젝트 관리 도구. 
-  pom.xml에 필요한 라이브러리를 정의해 놓으면, 네트워크를 통해 자동으로 해당 라이브러리를 다운받음.
-  https://maven.apache.org/
-  명령어 : mvn clean, mvn pakage -B, mvn spring-boot:run
+  - version : 3.6.3
+  - 자바용 프로젝트 관리 도구. 
+  - pom.xml에 필요한 라이브러리를 정의해 놓으면, 네트워크를 통해 자동으로 해당 라이브러리를 다운받음.
+  - https://maven.apache.org/
+  - 명령어 : mvn clean, mvn pakage -B, mvn spring-boot:run
 - Lombok
-  어노테이션 기반으로 코드를 자동완성 해주는 라이브러리
-  Getter, Setter, Equlas, ToString 등과 다양한 방면의 코드를 자동완성 시킬 수 있음.
+  - 어노테이션 기반으로 코드를 자동완성 해주는 라이브러리
+  - Getter, Setter, Equlas, ToString 등과 다양한 방면의 코드를 자동완성 시킬 수 있음.
 - FeignClient
-  Netflix 에서 만들어졌고, spring-cloud-starter-openfeign으로 스프링 라이브러리에서 사용할 수 있음
-  https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html
+  - Netflix 에서 만들어졌고, spring-cloud-starter-openfeign으로 스프링 라이브러리에서 사용할 수 있음
+  - https://cloud.spring.io/spring-cloud-netflix/multi/multi_spring-cloud-feign.html
 - vs code
-  MS에서 제공하는 크로스 플랫폼 에디터로 다양한 언어를 서포트 하며, IntelliSense와 Git 기능, 그리고 Extension 을 이용한 확장 기능을 제공
-  https://code.visualstudio.com/
+  - MS에서 제공하는 크로스 플랫폼 에디터로 다양한 언어를 서포트 하며, IntelliSense와 Git 기능, 그리고 Extension 을 이용한 확장 기능을 제공
+  - https://code.visualstudio.com/
   
 ## 테스트 환경
 - zookeeper
