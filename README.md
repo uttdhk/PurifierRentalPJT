@@ -813,12 +813,51 @@ server:
 # 운영
 
 ## CI/CD 설정
+
+### AWS 설정
+
+#### AWS login
+```
+aws configure
+	AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
+	AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+	Default region name [None]: ap-southeast-2
+	Default output format [None]: json
+```
+
+#### AWS Cluster 생성
+```
+eksctl create cluster --name user13-eks --version 1.17 --nodegroup-name standard-workers --node-type t3.medium --nodes 4 --nodes-min 1 --nodes-max 4
+```
+
+#### AWS Region 설정
+```
+aws eks --region ap-southeast-2 update-kubeconfig --name user13-eks
+kubectl config current-context
+kubectl get all
+```
+
 ### 빌드/배포
 각 프로젝트 jar를 Dockerfile을 통해 Docker Image 만들어 ECR저장소에 올린다.   
 EKS 클러스터에 접속한 뒤, 각 서비스의 deployment.yml, service.yml을 kuectl명령어로 서비스를 배포한다.   
   - 코드 형상관리 : https://github.com/uttdhk/PurifierRentalPJT 하위 repository에 각각 구성   
   - 운영 플랫폼 : AWS의 EKS(Elastic Kubernetes Service)   
   - Docker Image 저장소 : AWS의 ECR(Elastic Container Registry)
+
+#### 마이크로 서비스 package 생성
+
+```
+cd /home/project/PurifierRentalPJT/Order;mvn package -B;
+cd /home/project/PurifierRentalPJT/Installation;mvn package -B;
+cd /home/project/PurifierRentalPJT/Assignment;mvn package -B;
+cd /home/project/PurifierRentalPJT/gateway;mvn package -B;
+cd /home/project/PurifierRentalPJT/Customer;mvn package -B;
+```
+
+#### docker login
+```
+docker login --username AWS -p $(aws ecr get-login-password --region ap-southeast-2) 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/
+```
 
 #### docker build
 ```
@@ -836,28 +875,6 @@ cd /home/project/PurifierRentalPJT/Installation;docker push 879772956301.dkr.ecr
 cd /home/project/PurifierRentalPJT/Assignment;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-assignment:v2;
 cd /home/project/PurifierRentalPJT/Customer;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-customer:v2;
 cd /home/project/PurifierRentalPJT/gateway;docker push 879772956301.dkr.ecr.ap-southeast-2.amazonaws.com/user13-gateway:v1;
-```
-
-### Helm 설치
-
-#### Helm 설치하기
-```
-curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh			# Download Helm Script
-chmod 700 get_helm.sh											# 실행권한 부여
-./get_helm.sh												# 설치 진행
-```
-
-#### Helm incubator repository 추가
-```
-helm repo add incubator https://charts.helm.sh/incubator
-```
-
-#### chart 설치
-```
-helm repo update						# 최신 chart 리스트 업데이트
-kubectl create ns kafka						# kafka namespace 생성
-helm install my-kafka --namespace kafka incubator/kafka 	# my-kafka에 incubator 설치
-kubectl get all -n kafka					# kafka 설치 확인
 ```
 
 #### kubectrl deploy, service
@@ -884,6 +901,34 @@ kubectl apply -f service.yaml;
 
 ##### 배포 결과
 ![503  02  customer deploy service](https://user-images.githubusercontent.com/81424367/120590520-9e3dcc80-c475-11eb-832a-ae0fad1d54d6.png)
+
+### Helm 설치
+
+#### Helm 설치하기
+```
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh				# Download Helm Script
+chmod 700 get_helm.sh												# 실행권한 부여
+./get_helm.sh													# 설치 진행
+```
+
+#### Helm 서버인 Tiller에 대한 클러스터 관리자 역할을 가진 계정 생성
+```
+kubectl --namespace kube-system create sa tiller								# tiller service 계정 생성
+kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller	# 클러스터 관리자 역할 부여
+```
+
+#### Helm incubator repository 추가
+```
+helm repo add incubator https://charts.helm.sh/incubator
+```
+
+#### chart 설치
+```
+helm repo update						# 최신 chart 리스트 업데이트
+kubectl create ns kafka						# kafka namespace 생성
+helm install my-kafka --namespace kafka incubator/kafka 	# my-kafka에 incubator 설치
+kubectl get all -n kafka					# kafka 설치 확인
+```
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 
