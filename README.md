@@ -1376,8 +1376,8 @@ CloudWatch Logs 수집, 아카이브 스토리지 및 데이터 스캔 요금이
 
 ## 설계
 - MSAEz 
-Microservice model 구현 및 spring-boot 소스 생성
-http://www.msaez.io/
+  - Microservice model 구현 및 spring-boot 소스 생성
+  - http://www.msaez.io/
 
 ## 개발환경 및 사용 명령어
 
@@ -1405,96 +1405,98 @@ http://www.msaez.io/
   - https://code.visualstudio.com/
   
 ## 테스트 환경
+
 - zookeeper
-  분산 코디네이터 서비스
-  Cluster를 이루는 각 Kafka Broker의 동작 상태를 파악하고 상태 정보를 Producer 및 Consumer에게 전달 한다.
-  https://zookeeper.apache.org/releases.html
-  명령어 : zookeeper-server-start.bat ../../config/zookeeper.properties
+  - 분산 코디네이터 서비스
+  - Cluster를 이루는 각 Kafka Broker의 동작 상태를 파악하고 상태 정보를 Producer 및 Consumer에게 전달 한다.
+  - https://zookeeper.apache.org/releases.html
+  - 명령어 : zookeeper-server-start.bat ../../config/zookeeper.properties
 - kafka
-  version : 2.13-2.8
-  고성능 고가용 메세징 시스템
-  http://kafka.apache.org
-  명령어 : kafka-server-start.bat ../../config/server.properties     					     #서버 시작 시
-           kafka-server-start.bat ../../config/server.properties --override delete.topic.enable=true	        #카프카메시지 삭제
-	   kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic 토픽명 --from-beginning  #MQ모니터링
+  - version : 2.13-2.8
+  - 고성능 고가용 메세징 시스템
+  - http://kafka.apache.org
+  - 명령어
+    - kafka-server-start.bat ../../config/server.properties     					     	# 서버 시작 시
+    - kafka-server-start.bat ../../config/server.properties --override delete.topic.enable=true	        	# 카프카메시지 삭제
+    - kafka-console-consumer.bat --bootstrap-server http://localhost:9092 --topic 토픽명 --from-beginning       # MQ모니터링
 - HTTPie
-  python 으로 개발된 콘솔용 http client 유틸리티로 curl 대신 http 개발 및 디버깅 용도로 사용 가능
-  https://httpie.io/
+  - python 으로 개발된 콘솔용 http client 유틸리티로 curl 대신 http 개발 및 디버깅 용도로 사용 가능
+  - https://httpie.io/
 - curl(Client URL)
-  클라이언트에서 커맨드 라인이나 소스코드로 손 쉽게 웹 브라우저 처럼 활동할 수 있도록 해주는 기술
-  https://curl.se/
-  https://shutcoding.tistory.com/23
+  - 클라이언트에서 커맨드 라인이나 소스코드로 손 쉽게 웹 브라우저 처럼 활동할 수 있도록 해주는 기술
+  - https://curl.se/
+  - https://shutcoding.tistory.com/23
 - helm
-  version : 3.x
-  쿠버네티스 package managing tool
-  https://reoim.tistory.com/entry/Kubernetes-Helm-%EC%82%AC%EC%9A%A9%EB%B2%95
+  - version : 3.x
+  - 쿠버네티스 package managing tool
+  - https://reoim.tistory.com/entry/Kubernetes-Helm-%EC%82%AC%EC%9A%A9%EB%B2%95
 - github
-  분산 버전 관리 툴인 깃 (Git)저장소 호스팅을 지원하는 웹 서비스
-  https://github.com
-  명령어 : git clone, git pull, git commit, git push
+  - 분산 버전 관리 툴인 깃 (Git)저장소 호스팅을 지원하는 웹 서비스
+  - https://github.com
+  - 명령어 : git clone, git pull, git commit, git push
 - aws
-  아마존 웹 서비스
-  https://aws.amazon.com/
-  명령어 : 
-    aws configure
-    aws eks 
-    eksctl create nodegroup --cluster=yourClusterName --name=yourNodeGroupName --region yourRegionName
+  - 아마존 웹 서비스
+  - https://aws.amazon.com/
+  - 명령어 : 
+    - aws configure
+    - aws eks 
+    - eksctl create nodegroup --cluster=yourClusterName --name=yourNodeGroupName --region yourRegionName
 - docker
-  격리된 공간에서 프로세스가 동작하는 기술. 컨테이너 기반의 오픈소스 가상화 플랫폼
-  https://www.docker.com/
-  명령어 : docker login, docker build, docker push, docker pull
+  - 격리된 공간에서 프로세스가 동작하는 기술. 컨테이너 기반의 오픈소스 가상화 플랫폼
+  - https://www.docker.com/
+  - 명령어 : docker login, docker build, docker push, docker pull
 - istio
-  version : 1.7.1
-  마이크로서비스 간 데이터 공유를 제어하는 기반을 제공하는 오픈소스 서비스 메쉬 플랫폼
-  https://istio.io/
-  명령어 : istioctl install
+  - version : 1.7.1
+  - 마이크로서비스 간 데이터 공유를 제어하는 기반을 제공하는 오픈소스 서비스 메쉬 플랫폼
+  - https://istio.io/
+  - 명령어 : istioctl install
 - kiali
-  Istio를 통해 서비스매쉬를 구성하시고 이를 모니터링할 수 있는 툴
-  여러 내역들에 대해서 서비스매쉬가 그래프로 그려지면서 한눈에 쉽게 확인 할 수 있음.
-  https://kiali.io/
+  - Istio를 통해 서비스매쉬를 구성하시고 이를 모니터링할 수 있는 툴
+  - 여러 내역들에 대해서 서비스매쉬가 그래프로 그려지면서 한눈에 쉽게 확인 할 수 있음.
+  - https://kiali.io/
 - siege
-  리눅스 기반의 http 로드(부하)테스트 도구
-  https://www.joedog.org/siege-manual/
-  명령어 : siege -c100 -t60S -v 'http://...' 
+  - 리눅스 기반의 http 로드(부하)테스트 도구
+  - https://www.joedog.org/siege-manual/
+  - 명령어 : siege -c100 -t60S -v 'http://...' 
 - base64
-  명령어 :
-    echo -n 'hello world' | base64
-    echo aGVsbG8gd29ybGQ= | base64 --decode
+  - 명령어 :
+    - echo -n 'hello world' | base64
+    - echo aGVsbG8gd29ybGQ= | base64 --decode
 - kubectl
-  쿠버네티스 클러스터를 제어하기 위한 커맨드 라인 도구
-  https://kubernetes.io/ko/docs/reference/kubectl/overview/
-  명령어 : 
-    kubectl get all
-    kubectl apply -f xxxx.yml
-    kubectl logs pods/<pod-name>
-    kubectl describe pods/<pod-name>
-    kubectl exec -it <pod-name> -- /bin/bash
-    kubectl autoscale deploy NAME-OF-DEPLOY
-    kubectl get hpa NAME-OF-HPA --min=1 --max=10 --cpu-percent=1
+  - 쿠버네티스 클러스터를 제어하기 위한 커맨드 라인 도구
+  - https://kubernetes.io/ko/docs/reference/kubectl/overview/
+  - 명령어 : 
+    - kubectl get all
+    - kubectl apply -f xxxx.yml
+    - kubectl logs pods/<pod-name>
+    - kubectl describe pods/<pod-name>
+    - kubectl exec -it <pod-name> -- /bin/bash
+    - kubectl autoscale deploy NAME-OF-DEPLOY
+    - kubectl get hpa NAME-OF-HPA --min=1 --max=10 --cpu-percent=1
 - Metrics server 설치
-  Kubernetes 를 설치하게 되면 자원에 대한 모니터링이 필요하다.
-  과거에는 Heapster 를 이용했지만 이것은 이제 더 이상 개발이 되지 않고 있으며 이를 대체하는 것이 Metric Server.
-  명령어 :
-    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-    kubectl get deployment metrics-server -n kube-system
+  - Kubernetes 를 설치하게 되면 자원에 대한 모니터링이 필요하다.
+  - 과거에는 Heapster 를 이용했지만 이것은 이제 더 이상 개발이 되지 않고 있으며 이를 대체하는 것이 Metric Server.
+  - 명령어 :
+    - kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    - kubectl get deployment metrics-server -n kube-system
 	
 ## Database
 
 - H2 Database
-  자바 기반의 오픈소스 관계형 데이터 베이스 관리 시스템(RDBMS)
-  인메모리DB로 브라우저 기반의 콘솔모드를 이용할 수 있으며, 별도의 설치과정이 없고 용량도 2MB(압축버전) 이하로 매우 저용량 DB
-  http://www.h2database.com/html/main.html
+  - 자바 기반의 오픈소스 관계형 데이터 베이스 관리 시스템(RDBMS)
+  - 인메모리DB로 브라우저 기반의 콘솔모드를 이용할 수 있으며, 별도의 설치과정이 없고 용량도 2MB(압축버전) 이하로 매우 저용량 DB
+  - http://www.h2database.com/html/main.html
   
 - MongoDB
-  version : 4.4.6
-  필요한 쿼리 제공 및 인덱싱을 활용해 원하는 수준의 확장성과 유연성을 제공하는 문서 데이터베이스
-  https://www.mongodb.com/try/download/community
+  - version : 4.4.6
+  - 필요한 쿼리 제공 및 인덱싱을 활용해 원하는 수준의 확장성과 유연성을 제공하는 문서 데이터베이스
+  - https://www.mongodb.com/try/download/community
 
 ## 기타
-  http://msaschool.io/
-  http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1/ops-utility
-  http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1
-  http://labs.msaez.io/#/courses/assessment/running@cloud-final-aws-1st
-  https://workflowy.com/s/assessment/qJn45fBdVZn4atl3
-  https://github.com/longsawyer/gasstation/
-  https://github.com/msa-ez
+  - http://msaschool.io/
+  - http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1/ops-utility
+  - http://www.msaez.io/#/courses/cna-full/running@cna-full-aws-1
+  - http://labs.msaez.io/#/courses/assessment/running@cloud-final-aws-1st
+  - https://workflowy.com/s/assessment/qJn45fBdVZn4atl3
+  - https://github.com/longsawyer/gasstation/
+  - https://github.com/msa-ez
